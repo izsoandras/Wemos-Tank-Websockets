@@ -122,7 +122,7 @@ char index_html[] PROGMEM = R"=====(
 	var decaymode = 0;
 	
 	//var connection = new WebSocket('ws://' + window.location.host + ':81', ['arduino']);
-	var connection = new WebSocket('ws://' +'192.168.0.1' + ':81', ['arduino']);
+	var connection = new WebSocket('ws://' +'192.168.4.1' + ':81', ['arduino']);
 
 	connection.onopen = function () {		 //open
 		console.log("Websocket Open");
@@ -182,59 +182,60 @@ char index_html[] PROGMEM = R"=====(
 		draw_stick(ctx_stickr,c_stickr.width/2,c_stickr.height/2,2,3);
 
 		window.addEventListener("optimizedResize", function() {
-		resize();
+			resize();
 		});
 		window.addEventListener("orientationchange", function() {
-		window.setTimeout(resize, 300)
+			window.setTimeout(resize, 300)
 		});	
 		c_stickl.addEventListener('touchend', function() {
-		console.log( "endl");
-		draw_stick(ctx_stickl,c_stickl.width/2,c_stickl.height/2,0,1);
+			console.log( "endl");
+			draw_stick(ctx_stickl,c_stickl.width/2,c_stickl.height/2,0,1);
 		});
 		c_stickl.addEventListener('touchmove', function(event) {
-		event.preventDefault();
-		touches = event.touches;
-		window.requestAnimationFrame(update);
+			event.preventDefault();
+			touches = event.touches;
+			window.requestAnimationFrame(update);
 		});
 
 		
 		
 		c_stickl.addEventListener('click', function(event) {
-		console.log('stickl_clicked_at');
-		console.log(event);
-		var coords = getCursorPosition(this,event);
-        ppm[1] = 0;
-        ppm[2] = coords.my;
-		sendtankdata();
+			console.log('stickl_clicked_at');
+			console.log(event);
+			var coords = getCursorPosition(this,event);
+			ppm[1] = 0;
+			ppm[2] = coords.my;
+			sendtankdata();
 		});
 		
 		
 		c_stickr.addEventListener('click', function(event) {
-		console.log('stickr_clicked_at');
-		console.log(event);
-		var coords = getCursorPosition(this,event);
-		ppm[1] = coords.mx;
-        ppm[2] = 0;
-        sendtankdata();
+			console.log('stickr_clicked_at');
+			console.log(event);
+			var coords = getCursorPosition(this,event);
+			ppm[1] = coords.mx;
+			ppm[2] = 0;
+			sendtankdata();
 		});
+		
 		
 
 		c_stickl.addEventListener('touchstart', function(event) {
-		console.log('startl');
+			console.log('startl');
 		});
 		c_stickr.addEventListener('touchend', function() {
-		console.log("endr");
-		end=1;
-		draw_stick(ctx_stickr,c_stickr.width/2,c_stickr.height/2,2,3);
+			console.log("endr");
+			end=1;
+			draw_stick(ctx_stickr,c_stickr.width/2,c_stickr.height/2,2,3);
 		});
 		c_stickr.addEventListener('touchmove', function(event) {
-		event.preventDefault();
-		touches = event.touches;
-		window.requestAnimationFrame(update);
+			event.preventDefault();
+			touches = event.touches;
+			window.requestAnimationFrame(update);
 		});
 		c_stickr.addEventListener('touchstart', function(event) {
-		console.log('startr');
-		end=0;
+			console.log('startr');
+			end=0;
 		});
 	};
 
@@ -248,6 +249,10 @@ char index_html[] PROGMEM = R"=====(
 	function Button1Change(checkbox)
 	{
 		if(checkbox.checked==true) ppm[4] = ppm[4] | 0x01;
+				
+						 
+	  
+				
 		else ppm[4] = ppm[4] & (~0x01);
 		window.requestAnimationFrame(update);
 		console.log("Button1: " + ppm[4]);
@@ -255,14 +260,17 @@ char index_html[] PROGMEM = R"=====(
 	function Button2Change(checkbox)
 	{
 		if(checkbox.checked==true) ppm[4] = ppm[4] | 0x02;
-		else
-		ppm[4] = ppm[4] & (~0x02);
+						 
+	  
+		else ppm[4] = ppm[4] & (~0x02);
 		window.requestAnimationFrame(update);
 		console.log("Button2: " + ppm[4]);
 	}
 	function Button3Change(checkbox)
 	{
 		if(checkbox.checked==true) ppm[4] = ppm[4] | 0x04;
+						 
+	  
 		else ppm[4] = ppm[4] & (~0x04);
 		window.requestAnimationFrame(update);
 		console.log("Button3: " + ppm[4]);
@@ -271,6 +279,8 @@ char index_html[] PROGMEM = R"=====(
 	function Button4Change(checkbox)
 	{
 		if(checkbox.checked==true) ppm[4] = ppm[4] | 0x08;
+						 
+	  
 		else ppm[4] = ppm[4] & (~0x08);
 		window.requestAnimationFrame(update);
 		console.log("Button4: " + ppm[4]);
@@ -279,6 +289,8 @@ char index_html[] PROGMEM = R"=====(
 	function Button5Change(checkbox)
 	{
 		if(checkbox.checked==true) ppm[4] = ppm[4] | 0x10;
+						 
+	  
 		else ppm[4] = ppm[4] & (~0x10);
 		window.requestAnimationFrame(update);
 		console.log("Button5: " + ppm[4]);
@@ -287,6 +299,8 @@ char index_html[] PROGMEM = R"=====(
 	function Button6Change(checkbox)
 	{
 		if(checkbox.checked==true) ppm[4] = ppm[4] | 0x20;
+						 
+	  
 		else ppm[4] = ppm[4] & (~0x20);
 		window.requestAnimationFrame(update);
 		console.log("Button6: " + ppm[4]);
@@ -294,16 +308,21 @@ char index_html[] PROGMEM = R"=====(
 	 function Button7Change(checkbox)
 	{
 		if(checkbox.checked==true){
-            ppm[4] = ppm[4] | 0x40;
-            decaymode = 1;
+			ppm[4] = ppm[4] | 0x40;
+			decaymode = 1;
 		}else{
-            ppm[4] = ppm[4] & (~0x40);
-            decaymode = 0;
+			ppm[4] = ppm[4] & (~0x40);
+			decaymode = 0;
 		}
+	  
+							 
+				
+   
 		window.requestAnimationFrame(update);
 		console.log("Button7: " + ppm[4]);
 	}
 	
+
 	function resize()
 	{
 		ctx_left.canvas.height=window.innerHeight-(window.innerHeight/10*2);
@@ -378,36 +397,39 @@ char index_html[] PROGMEM = R"=====(
 			var py = touch.pageY-touch.target.offsetTop;
 			console.log(touch.target.id);
 			if(touch.target.id=="Canvas_stickl" && !left)
-            {
-                if(px>ctx_stickl.canvas.width)
-                    px=ctx_stickl.canvas.width;
-                if(py<0)
-                    py=0;
-                if(px<0)
-                    px=0;
-                if(py>ctx_stickl.canvas.height)
-                    py=ctx_stickl.canvas.height;
-                draw_stick(ctx_stickl,px,py,0,1);
-                left=1;
+			{
+			if(px>ctx_stickl.canvas.width)
+				px=ctx_stickl.canvas.width;
+			if(py<0)
+				py=0;
+			if(px<0)
+				px=0;
+			if(py>ctx_stickl.canvas.height)
+				py=ctx_stickl.canvas.height;
+			draw_stick(ctx_stickl,px,py,0,1);
+			left=1;
 			}
 			if(touch.target.id=="Canvas_stickr" && !right && !end)
 			{
-                if(px>ctx_stickr.canvas.width)
-                    px=ctx_stickr.canvas.width;
-                if(py<0)
-                    py=0;
-                if(px<0)
-                    px=0;
-                if(py>ctx_stickr.canvas.height)
-                    py=ctx_stickr.canvas.height;
-                draw_stick(ctx_stickr,px,py,2,3);
-                right=1;
+			if(px>ctx_stickr.canvas.width)
+				px=ctx_stickr.canvas.width;
+			if(py<0)
+				py=0;
+			if(px<0)
+				px=0;
+			if(py>ctx_stickr.canvas.height)
+				py=ctx_stickr.canvas.height;
+			draw_stick(ctx_stickr,px,py,2,3);
+			right=1;
 			}
 		}
 		
 		sendtankdata();
+		
+		
 	}
 	function sendalive(){
+		console.log("sendalive");
 		sendtankdata();
 		return;
 	}
@@ -420,11 +442,11 @@ char index_html[] PROGMEM = R"=====(
 		var axis_fwrev	 = LY*Math.abs(LY)*1.0+ LY*Math.abs(LY)*0.5*Math.abs(RX);
 		var axis_leftright = Math.abs(RX) * RX;
 		var mul = 255;
-		var left_reverse = mul * Math.max(0, Math.min(1.0,axis_leftright - axis_fwrev)) ;
-		var left_forward = mul * Math.max(0, Math.min(1.0,-(axis_leftright - axis_fwrev))); 
-		var right_reverse= mul * Math.max(0, Math.min(1.0,axis_leftright + axis_fwrev));
-		var right_forward= mul * Math.max(0, Math.min(1.0,-(axis_leftright + axis_fwrev)));
-        var l_pwm = Math.max(left_forward,left_reverse);
+		var left_reverse = Math.round(mul * Math.max(0, Math.min(1.0,axis_leftright - axis_fwrev)) );
+		var left_forward = Math.round(mul * Math.max(0, Math.min(1.0,-(axis_leftright - axis_fwrev)))); 
+		var right_reverse= Math.round(mul * Math.max(0, Math.min(1.0,axis_leftright + axis_fwrev)));
+		var right_forward= Math.round(mul * Math.max(0, Math.min(1.0,-(axis_leftright + axis_fwrev))));
+		var l_pwm = Math.max(left_forward,left_reverse);
         var r_pwm = Math.max(right_forward,right_reverse);
 		if (decaymode == 1){
 			if (left_reverse >0){
@@ -460,16 +482,10 @@ char index_html[] PROGMEM = R"=====(
 		sendframe[3] = right_forward;
 		sendframe[4] = ppm[4];
 		if (wsconnect) connection.send(sendframe);
-		//var newtext = "";
-		//newtext = "ppm: ";
-		//for (var i = 0; i<8; i++){
-		//	newtext += i+":"+ppm[i].toFixed(3)+ " ";
-		//}
-        var newtext = "Lpwm= " + l_pwm.toFixed(1) + " Rpwm= " + r_pwm.toFixed(1);
-		newtext += "<br/>";
-		newtext += ' RX='+RX.toFixed(3)+' LY='+LY.toFixed(3)+ " FW="+axis_fwrev.toFixed(3)+" LR="+axis_leftright.toFixed(3);
-		document.getElementById("textdiv").innerHTML = newtext
-		}
+		let newtext = "LF="+Math.floor(left_forward)+" LR="+Math.floor(left_reverse)+" RF="+Math.floor(right_forward)+" RR="+Math.floor(right_reverse) + " 0b"+ppm[4].toString(2);
+		document.getElementById("textdiv").innerHTML = newtext;
+	}
+
 	</script>
 
 
