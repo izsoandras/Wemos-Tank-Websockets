@@ -415,8 +415,15 @@ char index_html[] PROGMEM = R"=====(
 	function sendtankdata(){
 		//So we know the ppm order: LX, LY, RX, RY
 		//the ppm range needs to be transformed to (it already is :) )[-1,1]
-		var LY = ppm[2];
-		var RX = ppm[1];
+		var LY;
+		var RX;
+		if(ppm[4] & 0x01){
+			LY = ppm[2];
+			RX = ppm[3];//ppm[1];
+		} else{
+			LY = ppm[0];
+			RX = ppm[1];//ppm[1];
+		}
 		var axis_fwrev	 = LY*Math.abs(LY)*1.0+ LY*Math.abs(LY)*0.5*Math.abs(RX);
 		var axis_leftright = Math.abs(RX) * RX;
 		var mul = 255;

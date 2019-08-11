@@ -88,19 +88,46 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
           else
             MR.setmotor(_CCW, payload[2]);
 
-          //we have 5 bits of pwmfreq;
-          float pwmfactor = (payload[4] & 0b00111110) >> 1;
-          float newpwmfreq = (20000.0 * pow(0.82, pwmfactor));
-          //Serial.println(pwmfactor);
-          int k = (float) newpwmfreq;
-          if (k != PwmFrequency) {
-            PwmFrequency = k;
-            //analogWriteFreq(PwmFrequency);
-            ML.setfreq(PwmFrequency);
-            MR.setfreq(PwmFrequency);
-            if (DBG) Serial.print("PWM freq=");
-            if (DBG) Serial.println(k);
+          if(payload[4] & 2)
+            ;//do nothing, it's handlend on JS side
+            
+          if(payload[4] & 4){
+            //turn on headlights
+          }else{
+            
           }
+          if(payload[4] & 8){
+            
+          }else{
+            
+          }
+          if(payload[4] & 16){
+          }else{
+            
+          }
+          if(payload[4] & 32){
+            
+          }else{
+            
+         }
+          if(payload[4] & 64){
+            
+          }else{
+            
+          }
+//          //we have 5 bits of pwmfreq;
+//          float pwmfactor = (payload[4] & 0b00111110) >> 1;
+//          float newpwmfreq = (20000.0 * pow(0.82, pwmfactor));
+//          //Serial.println(pwmfactor);
+//          int k = (float) newpwmfreq;
+//          if (k != PwmFrequency) {
+//            PwmFrequency = k;
+//            //analogWriteFreq(PwmFrequency);
+//            ML.setfreq(PwmFrequency);
+//            MR.setfreq(PwmFrequency);
+//            if (DBG) Serial.print("PWM freq=");
+//            if (DBG) Serial.println(k);
+//          }
 
           lastpacket = millis();
 
