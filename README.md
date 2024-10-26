@@ -5,7 +5,7 @@ It has also operational head, reverse, brake lights and turn signals.
 Connection will be signaled over the built-in LED, but currently not supported because of GPIO mismatch.
 
 ## Usage
-1. Once turned on, the tank should host it's own WiFi address, without password with SSID: "TigerTank"
+1. Once turned on, the tank should host it's own WiFi address, without password with SSID: "TigerTank". Only a single connection is allowed at a time, to avoid interference.
 2. The tank hosts a webpage, where it can be controlled. This should be reachable over `http://tank.local`, `192.168.4.1`. A captive portal is in operation, so every other request will result in this page in fact
 3. The tank can be controlled by the left joystick. The red circles in the middle are buttons. Current functions are:
     1. reserved
@@ -17,6 +17,8 @@ Connection will be signaled over the built-in LED, but currently not supported b
     7. reserved
     8. reserved
 4. If the tank doesn't recieve a command for 1s, it stops to avoid a crash.
+
+Through the WebSocket connection, any other piece of software can send the control signal. Refer to [this example](https://github.com/izsoandras/IMU-remote-controller).
   
 ## Implementation details
 ### Communication
