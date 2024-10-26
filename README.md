@@ -33,10 +33,10 @@ The webserver is on port `80` WebSocket server is set on port `81` by default. T
 | GPIO | Functionality        | Active state |
 |------|----------------------|--------------|
 | 0    | Reverse light        | high         |
-| 2    | Left turn signal     | high         |
+| 2    | WebSocket connection | low          |
 | 4    | I2C SDA              | -            |
 | 5    | I2C SCL              | -            |
-| 12   | RIght turn signal    | high         |
-| 14   | WebSocket connection | low          |
+| 12   | Right turn signal    | high         |
+| 13   | Brake light          | high         |
+| 14   | Left turn signal     | high         |
 | 15   | Head light           | high         |
-| 16   | Brake light          | high         |

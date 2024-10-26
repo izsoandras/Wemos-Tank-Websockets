@@ -12,14 +12,12 @@
 #define ENABLE_MOT
 
 /*Physical connections*/
-#undef BUILTIN_LED
-#define BUILTIN_LED 14 // ONLY TEMPORARY, should be D4 / GPIO2
-
 #define REVERSE_LIGHT 0       // reverse lights     D3 / GPIO0
-#define LEFT_TURN_SIGNAL 2    // left turn signal   D4 / GPIO2  ALSO BULTIN_LED --> CHANGE!
-#define BRAKE_LIGHT 16        // brake lights       D0 / GPIO16
-#define HEAD_LIGHT 15         // front lights       D8 / GPIO15
+#define CONNECT_LED 2             // connection     D4 / GPIO2 -- BUILTIN_LED
 #define RIGHT_TURN_SIGNAL 12  // right turn signal  D6 / GPIO 12
+#define BRAKE_LIGHT 13        // brake lights       D7 / GPIO13
+#define LEFT_TURN_SIGNAL 14   // left turn signal   D5 / GPIO14
+#define HEAD_LIGHT 15         // front lights       D8 / GPIO15
 
 /*Tank physical parameters*/
 const float b = 1.0;
@@ -76,13 +74,13 @@ void handleNotFound()
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
   switch (type) {
     case WStype_DISCONNECTED:
-      digitalWrite(BUILTIN_LED, LOW);
+      digitalWrite(CONNECT_LED, HIGH);
       Serial.println("WS disconnected");
       break;
     case WStype_CONNECTED: {
         // send message to client
         webSocket.sendTXT(num, "Connected");
-        digitalWrite(BUILTIN_LED, HIGH);
+        digitalWrite(CONNECT_LED, LOW);
         Serial.println("WS connected");
       }
       break;
@@ -149,8 +147,8 @@ void setup() {
   Serial.println("Setup start");
 
   /*Init lights*/
-  pinMode(BUILTIN_LED, OUTPUT);
-  digitalWrite(BUILTIN_LED, HIGH);
+  pinMode(CONNECT_LED, OUTPUT);
+  digitalWrite(CONNECT_LED, HIGH);
   
   pinMode(REVERSE_LIGHT, OUTPUT);
   digitalWrite(REVERSE_LIGHT, LOW);
@@ -216,7 +214,7 @@ void loop() {
   if ( currentMillis  - lastpacket > timeoutms) {
     if (active) {
       Serial.println("Timeout, stopping");
-      digitalWrite(BUILTIN_LED, LOW);
+      webSocket.disconnect();
       ML.setmotor(_STOP);
       MR.setmotor(_STOP);
       active = 0;
@@ -290,11 +288,11 @@ void loop() {
   }
 
   if(currentMillis  - lastCycle >= idleCycle && !active){
-    analogWrite(0, idleDuty);
-    analogWrite(2, idleDuty);
-    analogWrite(16, idleDuty);
-    analogWrite(15, idleDuty);
-    analogWrite(12, idleDuty);
+    analogWrite(HEAD_LIGHT, idleDuty);
+    analogWrite(BRAKE_LIGHT, idleDuty);
+    analogWrite(REVERSE_LIGHT, idleDuty);
+    analogWrite(LEFT_TURN_SIGNAL, idleDuty);
+    analogWrite(RIGHT_TURN_SIGNAL, idleDuty);
 
     idleDuty += idleDir;
 
