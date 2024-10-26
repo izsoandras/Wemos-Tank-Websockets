@@ -4,21 +4,37 @@
 #include <ESP8266mDNS.h>
 #include <WebSocketsServer.h>
 #include <DNSServer.h>
-#include <Hash.h>
+#include <math.h>
 
 #include <Wire.h>
 #include "WEMOS_Motor.h"
 
-#define bit(b) (1UL << (b)) // Taken directly from Arduino.h
-#define DEBUGPIN 12
-//#define DEBUG_ESP_HTTP_SERVER
+#define ENABLE_MOT
 
-/* Set these to your desired credentials. */
+/*Physical connections*/
+#undef BUILTIN_LED
+#define BUILTIN_LED 14 // ONLY TEMPORARY, should be D4 / GPIO2
+
+#define REVERSE_LIGHT 0       // reverse lights     D3 / GPIO0
+#define LEFT_TURN_SIGNAL 2    // left turn signal   D4 / GPIO2  ALSO BULTIN_LED --> CHANGE!
+#define BRAKE_LIGHT 16        // brake lights       D0 / GPIO16
+#define HEAD_LIGHT 15         // front lights       D8 / GPIO15
+#define RIGHT_TURN_SIGNAL 12  // right turn signal  D6 / GPIO 12
+
+/*Tank physical parameters*/
+const float b = 1.0;
+
+/*Timing parameters*/
+const unsigned long int activeCycle = 10;           // [ms]
+const unsigned long int turnSignalLength = 666;     // [ms]
+const unsigned long int minBrakeLightLength = 100;  // [ms]
+const unsigned long int timeoutms = 1000;          // [ms]
+const unsigned long int idleCycle = 30;             // [ms]
+
+/* Network parameters */
 const char *ssid = "TigerTank";
-//const char *password = "TigerTank";
-
+const char *password = "";
 const char* mdnsName = "tank"; // Domain name for the mDNS responder
-const byte captive_portal = 1;
 const byte DNS_PORT = 53;
 extern const char index_html[];
 IPAddress apIP(192, 168, 4, 1);
@@ -26,183 +42,266 @@ DNSServer dnsServer;
 ESP8266WebServer server(80);
 WebSocketsServer webSocket = WebSocketsServer(81);
 
+/* Motor controllers */
 Motor ML(0x30, _MOTOR_A, 1000);
 Motor MR(0x30, _MOTOR_B, 1000);
-
-#define L1 4
-#define L2 5
-#define R1 0
-#define R2 14
-#define frontled 12
-#define backled 13
-
 int PwmFrequency = 20000;
-bool active = 0;
-bool DBG = false;
-unsigned long int lastpacket = 0;
-const unsigned long int timeoutms = 50000;
 
+/*State variables*/
+int v, v_prev, omega, v_L, v_R = 0;
+bool emergency_signal_on, headlight_on = 0;
+bool active, breaking = 0;
+int16_t idleDuty = 0;
+int8_t idleDir = 1;
+unsigned long int currentMillis = 0;
+unsigned long int lastCycle = 0;
+unsigned long int lastpacket = 0;
+unsigned long int lastTurnSignal = 0;
+unsigned long int lastNotBrake = 0;
+
+/*root http response: send html site*/
 void handleRoot() {
   server.send_P(200, "text/html", index_html);
   Serial.println("handleroot: Client in.");
 }
 
+/*redirect to root if page not found*/
+void handleNotFound()
+{ 
+    server.sendHeader("Location", "/",true); //Redirect to our html web page 
+    server.send(302, "text/plane",""); 
+}
 
+/*websocket event handler*/
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
   switch (type) {
     case WStype_DISCONNECTED:
-      digitalWrite(frontled, LOW);
+      digitalWrite(BUILTIN_LED, LOW);
       Serial.println("WS disconnected");
       break;
     case WStype_CONNECTED: {
         // send message to client
         webSocket.sendTXT(num, "Connected");
-        digitalWrite(frontled, HIGH);
+        digitalWrite(BUILTIN_LED, HIGH);
         Serial.println("WS connected");
       }
       break;
-    case WStype_TEXT: {
-        if (payload[0] == 'g' && payload[1] == 'e' && payload[2] == 't') {
-          /*            webSocket.sendTXT(num, senddata);
-          */
-        }
-        Serial.println("WS_Text");
-      }
-      break;
     case WStype_BIN: {
-        Serial.println("WS_Bin");
-        if (length == 5) {
+        //Serial.println("WS_Bin");
+        // payload: v, omega, buttons
+        Serial.print("WS msg received: ");
+        for(uint8_t i = 0; i < length; i++){
+          Serial.print(payload[i]);
+          Serial.print(", \t");
+        }
+        Serial.println();
+        if (length == 3) {
           active = 1;
+          v = ((int)payload[0] - 127) * 2;
+          omega = ((int)payload[1] - 127) * 2;
 
-          if (payload[0] == 0 && payload[1] == 0)
-            ML.setmotor(_STOP);
-          else if (payload[0] == 0)
-            ML.setmotor(_CCW, payload[1]);
-          else
-            ML.setmotor(_CW, payload[0]);
+          v_L = v - b / 2 * omega;
+          v_R = v + b / 2 * omega;
 
-          if (payload[2] == 0 && payload[3] == 0)
-            MR.setmotor(_STOP);
-          else if (payload[2] == 0)
-            MR.setmotor(_CW, payload[3]);
-          else
-            MR.setmotor(_CCW, payload[2]);
+          Serial.printf("%d\t%d\n", v_L, v_R);
 
-          if(payload[4] & 2)
-            ;//do nothing, it's handlend on JS side
-            
-          if(payload[4] & 4){
-            //turn on headlights
-          }else{
-            
-          }
-          if(payload[4] & 8){
-            
-          }else{
-            
-          }
-          if(payload[4] & 16){
-          }else{
-            
-          }
-          if(payload[4] & 32){
-            
-          }else{
-            
-         }
-          if(payload[4] & 64){
-            
-          }else{
-            
-          }
-//          //we have 5 bits of pwmfreq;
-//          float pwmfactor = (payload[4] & 0b00111110) >> 1;
-//          float newpwmfreq = (20000.0 * pow(0.82, pwmfactor));
-//          //Serial.println(pwmfactor);
-//          int k = (float) newpwmfreq;
-//          if (k != PwmFrequency) {
-//            PwmFrequency = k;
-//            //analogWriteFreq(PwmFrequency);
-//            ML.setfreq(PwmFrequency);
-//            MR.setfreq(PwmFrequency);
-//            if (DBG) Serial.print("PWM freq=");
-//            if (DBG) Serial.println(k);
+          /* Server side */
+//          if (payload[2] & 1)
+
+          headlight_on = payload[2] & 2;
+          emergency_signal_on = payload[2] & 4;
+
+          /* RESERVED */
+//          if (payload[2] & 8) {
+//
+//          } else {
+//
+//          }
+//          if (payload[2] & 16) {
+//          } else {
+//
+//          }
+//          if (payload[2] & 32) {
+//
+//          } else {
+//
 //          }
 
           lastpacket = millis();
 
         } else {
-          Serial.print("Binary packet length !=5: ");
+          Serial.print("Binary packet length !=3: ");
           Serial.println(length);
         }
-        for (int i = 0; i < length; i++) {
-          Serial.print(payload[i]);
-        }
-        Serial.println(" <-packet");
       }
+      break;
+    default:
+      Serial.print("Unsupported WS message type: ");
+      Serial.println(type);
       break;
   }
 
 }
 
-void setupmotorpins() {
-  pinMode(BUILTIN_LED, OUTPUT);
-  digitalWrite(BUILTIN_LED, LOW);
-
-  ML.setfreq(2000);
-  MR.setfreq(2000);
-
-  ML.setmotor(_CCW, 50);
-  MR.setmotor(_CCW, 50);
-  delay(500);
-  ML.setmotor(_STOP);
-  MR.setmotor(_STOP);
-}
-
-void startMDNS() { // Start the mDNS responder
-  MDNS.begin(mdnsName);                        // start the multicast domain name server
-  Serial.print("mDNS responder started: http://");
-  Serial.print(mdnsName);
-  Serial.println(".local");
-}
-
 void setup() {
-  pinMode(DEBUGPIN, OUTPUT);
-  setupmotorpins();
+  Serial.begin(115200);
+  while(!Serial);
+  Serial.println("Setup start");
+
+  /*Init lights*/
+  pinMode(BUILTIN_LED, OUTPUT);
+  digitalWrite(BUILTIN_LED, HIGH);
+  
+  pinMode(REVERSE_LIGHT, OUTPUT);
+  digitalWrite(REVERSE_LIGHT, LOW);
+  
+  pinMode(LEFT_TURN_SIGNAL, OUTPUT);
+  digitalWrite(LEFT_TURN_SIGNAL, LOW);
+  
+  pinMode(BRAKE_LIGHT, OUTPUT);
+  digitalWrite(BRAKE_LIGHT, LOW);
+  
+  pinMode(HEAD_LIGHT, OUTPUT);
+  digitalWrite(HEAD_LIGHT, LOW);
+  
+  pinMode(RIGHT_TURN_SIGNAL, OUTPUT);
+  digitalWrite(RIGHT_TURN_SIGNAL, LOW);
+
+  /*Init motor drivers*/
+  #ifdef ENABLE_MOT
+    ML.setfreq(PwmFrequency);
+    MR.setfreq(PwmFrequency);
+  
+    ML.setmotor(_CCW, 50);
+    MR.setmotor(_CW, 50);
+    delay(10);
+    ML.setmotor(_STOP);
+    MR.setmotor(_STOP);
+  #endif
+
+  /*Init network*/
   WiFi.mode(WIFI_AP);
-  WiFi.softAP(ssid, NULL, 2);
-  IPAddress myIP = WiFi.softAPIP();
+  WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0)); // local_ip, gateway, subnet mask
+  WiFi.softAP(ssid, password, 2, false, 1);                   // ssid, pwd, channel, hidden, max conn
+  Serial.println(WiFi.softAPIP());
 
-
-  if (captive_portal) dnsServer.start(DNS_PORT, "*", apIP);
+  dnsServer.start(DNS_PORT, "*", apIP);
+  
   server.on("/", handleRoot);
+  server.onNotFound(handleNotFound);
   server.begin();
 
   webSocket.onEvent(webSocketEvent);
   webSocket.begin();
-  startMDNS();
-  Serial.begin(115200);
+  
+  MDNS.begin(mdnsName);                        // start the multicast domain name server
+  MDNS.addService("http", "tcp", 80);
+  Serial.print("mDNS responder started: http://");
+  Serial.print(mdnsName);
+  Serial.println(".local");
+
+  /*Setup finish*/
   Serial.println("Tank Ready");
-  Serial.println(myIP);
 }
 
+
 void loop() {
-  webSocket.loop();
-  if (captive_portal)
-    dnsServer.processNextRequest();
+  // operate web services
+  dnsServer.processNextRequest();
+  MDNS.update();
   server.handleClient();
-  if ( millis() - lastpacket > timeoutms) {
+  webSocket.loop();
+
+  currentMillis = millis();
+  if ( currentMillis  - lastpacket > timeoutms) {
     if (active) {
       Serial.println("Timeout, stopping");
-      digitalWrite(frontled, LOW);
+      digitalWrite(BUILTIN_LED, LOW);
       ML.setmotor(_STOP);
       MR.setmotor(_STOP);
       active = 0;
-      lastpacket = millis();
-    } else {
-      digitalWrite(frontled, !digitalRead(frontled));
-      lastpacket = millis();
     }
+  }
+
+  if(currentMillis  - lastCycle >= activeCycle && active){
+    /*Handle motor*/
+    #ifdef ENABLE_MOT
+      if (v_L == 0)
+        ML.setmotor(_STOP);
+      else {
+        if (v_L > 0)
+          ML.setmotor(_CCW, v_L);
+        else
+          ML.setmotor(_CW, -v_L);
+      }
+      if (v_R == 0)
+        MR.setmotor(_STOP);
+      else {
+        if (v_R > 0)
+          MR.setmotor(_CW, v_R);
+        else
+          MR.setmotor(_CCW, -v_R);
+        }
+    #endif
+
+    /*Handle lights*/
+    // Headlight
+    digitalWrite(HEAD_LIGHT, headlight_on);
+
+    // Reverse light
+    if (v < 0){
+      analogWrite(REVERSE_LIGHT, 128);
+    }else{
+      analogWrite(REVERSE_LIGHT, 0);
+    }
+
+    // Brake light
+    if (abs(v_prev) > abs(v) || ((currentMillis - lastNotBrake) <= minBrakeLightLength)){
+      if(breaking == 0)
+        lastNotBrake = currentMillis;
+      breaking = 1;
+      analogWrite(BRAKE_LIGHT, 255);
+    }else{
+      analogWrite(BRAKE_LIGHT, 50);
+      breaking = 0;
+    }
+
+    // Turn signals
+    if(currentMillis - lastTurnSignal >= turnSignalLength){
+      // Left turn signal
+      if (v * omega > 0 || emergency_signal_on){
+        digitalWrite(LEFT_TURN_SIGNAL, !digitalRead(LEFT_TURN_SIGNAL));
+      }else{
+        digitalWrite(LEFT_TURN_SIGNAL, LOW);
+      }
+
+      // Right turn signal
+      if (v * omega < 0 || emergency_signal_on){
+          digitalWrite(RIGHT_TURN_SIGNAL, !digitalRead(RIGHT_TURN_SIGNAL));
+      }else{
+        digitalWrite(RIGHT_TURN_SIGNAL, LOW);
+      }
+    
+      lastTurnSignal = currentMillis;
+    }
+      
+    v_prev = v;
+    lastCycle = currentMillis ;
+  }
+
+  if(currentMillis  - lastCycle >= idleCycle && !active){
+    analogWrite(0, idleDuty);
+    analogWrite(2, idleDuty);
+    analogWrite(16, idleDuty);
+    analogWrite(15, idleDuty);
+    analogWrite(12, idleDuty);
+
+    idleDuty += idleDir;
+
+    if(idleDuty == -10 || idleDuty == 200)
+      idleDir *= -1;
+    
+    lastCycle = currentMillis;
   }
   yield();
 }
