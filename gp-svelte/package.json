@@ -1,0 +1,27 @@
+{
+  "name": "gp-svelte",
+  "version": "0.0.0",
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^4.0.0",
+    "@tsconfig/svelte": "^5.0.4",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "rollup-plugin-visualizer": "^5.12.0",
+    "svelte": "^5.1.6",
+    "svelte-check": "^4.0.5",
+    "tailwindcss": "^3.4.14",
+    "tslib": "^2.8.0",
+    "typescript": "~5.6.3",
+    "vite": "^5.4.10",
+    "ws": "^8.18.0"
+  },
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-check --tsconfig ./tsconfig.json && tsc -p tsconfig.node.json",
+    "ws-server": "bun run server.js --watch"
+  },
+  "type": "module"
+}
