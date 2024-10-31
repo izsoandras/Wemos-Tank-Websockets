@@ -5,20 +5,43 @@ interface AppState {
   error: boolean;
 }
 
-export const socketStore = readable({}, (set) => {
-  const uri = import.meta.env.VITE_WS_SERVER as string;
-  const socket = new WebSocket(uri);
+type WebsocketMessage = {
+  message: string;
+};
 
-  socket.addEventListener("open", (event) => {
-    set({ message: "<client>: Connection Open" });
+export function createWsStore() {
+  let socket: WebSocket | null = null;
+
+  const { set, subscribe, update } = writable({}, (set) => {
+    const uri = import.meta.env.VITE_WS_SERVER as string;
+    const soc = new WebSocket(uri);
+    soc.addEventListener("open", (event) => {
+      set({ message: "<client>: Connection Open" });
+    });
+
+    soc.addEventListener("message", (event) => {
+      const data = JSON.parse(event.data);
+      set(data);
+    });
+
+    socket = soc;
+
+    return () => {
+      soc.close();
+    };
   });
 
-  socket.addEventListener("message", (event) => {
-    const data = JSON.parse(event.data);
-    set(data);
-  });
+  const sendMessage = (data: WebsocketMessage) => {
+    if (!socket) return;
 
-  return () => {
-    socket.close();
+    socket.send(JSON.stringify(data));
+    console.log("data sent");
   };
-});
+
+  return {
+    subscribe,
+    sendMessage,
+  };
+}
+
+export const customWsStore = createWsStore();

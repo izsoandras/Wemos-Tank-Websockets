@@ -4,13 +4,11 @@
   import ButtonPanel from "./lib/components/ButtonPanel.svelte";
   import Joypad from "./lib/components/Joypad.svelte";
 
-  import { socketStore } from "./lib/stores/app";
+  import { customWsStore } from "./lib/stores/app";
 
   let uiMode = $state<"joy" | "gamepad">("joy");
 
-  let inputValue = $state<string>("");
-
-  $inspect(socketStore);
+  $inspect($customWsStore);
 </script>
 
 <div
@@ -25,12 +23,4 @@
   {#if uiMode === "gamepad"}
     <p>gamepad</p>
   {/if}
-
-  <input class="border-2" bind:value={inputValue} />
-  <button
-    onclick={() => {
-      console.log(inputValue);
-    }}
-    >Send Message
-  </button>
 </div>

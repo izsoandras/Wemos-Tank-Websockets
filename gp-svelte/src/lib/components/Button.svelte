@@ -1,9 +1,10 @@
 <script lang="ts">
   import type { GamepadButton } from "../constants";
+  import { customWsStore } from "../stores/app";
 
   type Props = GamepadButton;
 
-  let { label, icon, favouredColor, isPush }: Props = $props();
+  let { label, icon, favouredColor, isPush, gpio }: Props = $props();
 
   const activeColor = favouredColor ?? "#2563eb";
   let active = $state(false);
@@ -19,6 +20,7 @@
     }
 
     active = !active;
+    customWsStore.sendMessage({ message: gpio });
   }
 </script>
 
