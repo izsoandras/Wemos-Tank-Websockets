@@ -21,7 +21,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json && tsc -p tsconfig.node.json",
-    "ws-server": "bun run server.js --watch"
+    "ws-server": "bun --watch server.js"
   },
   "type": "module"
 }
