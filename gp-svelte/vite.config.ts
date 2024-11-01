@@ -4,19 +4,11 @@ import { visualizer } from "rollup-plugin-visualizer";
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [
-    svelte(),
-    visualizer({
-      emitFile: true,
-      filename: "stats.html",
-    }),
-  ],
+  plugins: [svelte()],
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          svelte: ["svelte"],
-        },
+        manualChunks: {},
       },
     },
   },
