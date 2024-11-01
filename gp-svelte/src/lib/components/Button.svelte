@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { GamepadButton } from "../constants";
-  import { customWsStore } from "../stores/app";
+  import { buttonStore } from "../stores/buttons";
 
   type Props = GamepadButton;
 
@@ -20,7 +20,7 @@
     }
 
     active = !active;
-    customWsStore.sendMessage({ message: gpio });
+    buttonStore.set(label, active);
   }
 </script>
 
