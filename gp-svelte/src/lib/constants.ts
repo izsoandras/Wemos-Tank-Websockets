@@ -15,8 +15,18 @@ type HEX = `#${string}`;
 
 type Color = RGB | RGBA | HEX;
 
+export type ButtonTypes =
+  | "Lights"
+  | "Hazard"
+  | "Horn"
+  | "Power"
+  | "Flame"
+  | "Joystick"
+  | "LeftSignal"
+  | "RightSignal";
+
 export interface GamepadButton {
-  label: string;
+  label: ButtonTypes;
   gpio: string;
   icon: Component;
   favouredColor?: Color;
@@ -32,7 +42,7 @@ const colors = {
 export const buttonMappings: GamepadButton[] = [
   {
     label: "Lights",
-    gpio: "a",
+    gpio: "0x01",
     icon: Lightbulb,
     favouredColor: colors.darkBlue,
   },
@@ -65,13 +75,13 @@ export const buttonMappings: GamepadButton[] = [
     icon: Joystick,
   },
   {
-    label: "LeftL",
+    label: "LeftSignal",
     gpio: "a",
     icon: ArrowLeft,
     favouredColor: colors.yellow,
   },
   {
-    label: "RightL",
+    label: "RightSignal",
     gpio: "a",
     icon: ArrowRight,
     favouredColor: colors.yellow,

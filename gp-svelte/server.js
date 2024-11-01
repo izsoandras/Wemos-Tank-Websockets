@@ -12,13 +12,12 @@ server.on("connection", (socket) => {
 
   // Handle messages received from the client
   socket.on("message", (data) => {
-    const message = JSON.parse(data);
-    console.log("Received:", message);
+    console.log(data);
 
     // Send a response back to the client
     socket.send(
       JSON.stringify({
-        message: `Hello from server! Received: ${message.message}`,
+        message: `Hello from server! Received: ${data}`,
       })
     );
   });

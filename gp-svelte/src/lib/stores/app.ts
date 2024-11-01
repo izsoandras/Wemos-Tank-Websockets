@@ -1,12 +1,38 @@
 import { readable, writable } from "svelte/store";
+import type { ButtonTypes } from "../constants";
+import { buttonMappings } from "../constants";
 
 interface AppState {
   connected: boolean;
   error: boolean;
 }
 
-type WebsocketMessage = {
-  message: string;
+type Message = {
+  speed: any;
+  angularVelocity: any;
+  buttons: Record<ButtonTypes, boolean>;
+};
+
+type WebsocketMessage = Uint8Array;
+
+function mapAppMessageToWebsocketMessage(message: Message): WebsocketMessage {
+  console.log(message);
+  return new Uint8Array([0, 0, 0]);
+}
+
+const defaultValue: Message = {
+  speed: true,
+  angularVelocity: true,
+  buttons: {
+    LeftSignal: false,
+    RightSignal: false,
+    Flame: false,
+    Hazard: false,
+    Horn: false,
+    Joystick: false,
+    Lights: false,
+    Power: false,
+  },
 };
 
 export function createWsStore() {
@@ -31,10 +57,12 @@ export function createWsStore() {
     };
   });
 
-  const sendMessage = (data: WebsocketMessage) => {
+  const sendMessage = (data: Message) => {
     if (!socket) return;
 
-    socket.send(JSON.stringify(data));
+    const message = mapAppMessageToWebsocketMessage(data);
+
+    socket.send(message);
     console.log("data sent");
   };
 
