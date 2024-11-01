@@ -8,11 +8,7 @@
 
   let uiMode = $state<"joy" | "gamepad">("joy");
 
-  $inspect($customWsStore);
-
-  function sendMessage() {
-    customWsStore.sendMessage();
-  }
+  $inspect($customWsStore).with(console.debug);
 </script>
 
 <div
@@ -21,10 +17,7 @@
   <nav>
     <ButtonPanel />
   </nav>
-  <button
-    class="bg-black p-1 text-white rounded-lg"
-    onclick={() => sendMessage()}>Send</button
-  >
+
   {#if uiMode === "joy"}
     <Joypad />
   {/if}

@@ -2,11 +2,7 @@ import { get, writable } from "svelte/store";
 import type { ButtonTypes } from "../constants";
 import { buttonMappings } from "../constants";
 import { buttonStore } from "./buttons";
-
-interface AppState {
-  connected: boolean;
-  error: boolean;
-}
+import { CONFIG } from "../config";
 
 type Message = {
   speed: any;
@@ -59,12 +55,15 @@ const defaultValue: Message = {
 
 export function createWsStore() {
   let socket: WebSocket | null = null;
+  let intervalRunning: boolean = false;
+  let intervalId: number | undefined = undefined;
 
-  const { set, subscribe, update } = writable({}, (set) => {
+  const { subscribe } = writable({}, (set) => {
     const uri = import.meta.env.VITE_WS_SERVER as string;
     const soc = new WebSocket(uri);
-    soc.addEventListener("open", (event) => {
+    soc.addEventListener("open", () => {
       set({ message: "<client>: Connection Open" });
+      _startSendInterval();
     });
 
     soc.addEventListener("message", (event) => {
@@ -75,6 +74,7 @@ export function createWsStore() {
     socket = soc;
 
     return () => {
+      _stopSendInterval();
       soc.close();
     };
   });
@@ -90,7 +90,22 @@ export function createWsStore() {
     });
 
     socket.send(message);
-    console.log("data sent");
+  };
+
+  const _startSendInterval = () => {
+    if (!intervalRunning) {
+      intervalRunning = true;
+      intervalId = setInterval(() => {
+        if (socket && socket.readyState == WebSocket.OPEN) {
+          sendMessage();
+        }
+      }, CONFIG.interval);
+    }
+  };
+
+  const _stopSendInterval = () => {
+    intervalRunning = false;
+    clearInterval(intervalId);
   };
 
   return {

@@ -1,21 +1,28 @@
 <script lang="ts">
+  import { CONFIG } from "../config";
   import type { GamepadButton } from "../constants";
   import { buttonStore } from "../stores/buttons";
 
   type Props = GamepadButton;
 
-  let { label, icon, favouredColor, isPush, gpio }: Props = $props();
+  let { label, icon, favouredColor, isPush }: Props = $props();
 
   const activeColor = favouredColor ?? "#2563eb";
   let active = $state(false);
   let ButtonIcon = icon;
 
+  let intervalId = $state<number | undefined>(undefined);
+
   function handleClick() {
     if (isPush) {
+      if (intervalId) {
+        clearTimeout(intervalId);
+      }
+
       active = true;
-      setTimeout(() => {
+      intervalId = setTimeout(() => {
         active = false;
-      }, 500);
+      }, CONFIG.interval * 0.75);
       return;
     }
 
