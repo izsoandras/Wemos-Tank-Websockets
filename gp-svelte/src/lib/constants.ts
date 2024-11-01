@@ -27,7 +27,7 @@ export type ButtonTypes =
 
 export interface GamepadButton {
   label: ButtonTypes;
-  gpio: string;
+  gpio: number;
   icon: Component;
   favouredColor?: Color;
   isPush?: boolean;
@@ -42,47 +42,47 @@ const colors = {
 export const buttonMappings: GamepadButton[] = [
   {
     label: "Lights",
-    gpio: "0x01",
+    gpio: 0,
     icon: Lightbulb,
     favouredColor: colors.darkBlue,
   },
   {
     label: "Hazard",
-    gpio: "a",
+    gpio: 1,
     icon: TriangleAlert,
   },
   {
     label: "Horn",
-    gpio: "a",
+    gpio: 2,
     icon: AudioLines,
     isPush: true,
   },
 
   {
     label: "Power",
-    gpio: "a",
+    gpio: 3,
     icon: Power,
     favouredColor: colors.red,
   },
   {
     label: "Flame",
-    gpio: "a",
+    gpio: 4,
     icon: Flame,
   },
   {
     label: "Joystick",
-    gpio: "a",
+    gpio: 5,
     icon: Joystick,
   },
   {
     label: "LeftSignal",
-    gpio: "a",
+    gpio: 6,
     icon: ArrowLeft,
     favouredColor: colors.yellow,
   },
   {
     label: "RightSignal",
-    gpio: "a",
+    gpio: 7,
     icon: ArrowRight,
     favouredColor: colors.yellow,
   },

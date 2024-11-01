@@ -1,6 +1,7 @@
-import { readable, writable } from "svelte/store";
+import { get, writable } from "svelte/store";
 import type { ButtonTypes } from "../constants";
 import { buttonMappings } from "../constants";
+import { buttonStore } from "./buttons";
 
 interface AppState {
   connected: boolean;
@@ -16,22 +17,43 @@ type Message = {
 type WebsocketMessage = Uint8Array;
 
 function mapAppMessageToWebsocketMessage(message: Message): WebsocketMessage {
-  console.log(message);
-  return new Uint8Array([0, 0, 0]);
+  const { buttons } = message;
+
+  const buttonByte = Object.entries(buttons)
+    .sort((a, b) => {
+      const buttonA = buttonMappings.find((e) => e.label === a[0]);
+      const buttonB = buttonMappings.find((e) => e.label === b[0]);
+
+      return (buttonB?.gpio as number) - (buttonA?.gpio as number);
+    })
+    .map(([type, value]) => {
+      const button = buttonMappings.find((e) => e.label === type);
+      if (!button) throw Error("asd");
+      const gpio = button?.gpio;
+
+      return Number(value) << gpio;
+    })
+    .reduce((acc, curr) => {
+      return acc | curr;
+    }, 0);
+
+  console.log(buttonByte.toString(2).padStart(8, "0"));
+
+  return new Uint8Array([0, 0, buttonByte]);
 }
 
 const defaultValue: Message = {
   speed: true,
   angularVelocity: true,
   buttons: {
-    LeftSignal: false,
-    RightSignal: false,
-    Flame: false,
+    Lights: true,
     Hazard: false,
     Horn: false,
-    Joystick: false,
-    Lights: false,
-    Power: false,
+    Power: true,
+    Flame: false,
+    Joystick: true,
+    LeftSignal: false,
+    RightSignal: false,
   },
 };
 
@@ -57,10 +79,15 @@ export function createWsStore() {
     };
   });
 
-  const sendMessage = (data: Message) => {
+  const sendMessage = () => {
     if (!socket) return;
 
-    const message = mapAppMessageToWebsocketMessage(data);
+    const buttonStoreValues = get(buttonStore);
+
+    const message = mapAppMessageToWebsocketMessage({
+      ...defaultValue,
+      buttons: buttonStoreValues,
+    });
 
     socket.send(message);
     console.log("data sent");
