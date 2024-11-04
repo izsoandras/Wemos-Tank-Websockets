@@ -3,17 +3,18 @@ import type { ButtonTypes } from "../constants";
 import { buttonMappings } from "../constants";
 import { buttonStore } from "./buttons";
 import { CONFIG } from "../config";
+import { angularVelocityDerived, speedStoreDerived } from "./controller";
 
 type Message = {
-  speed: any;
-  angularVelocity: any;
+  speed: number;
+  angularVelocity: number;
   buttons: Record<ButtonTypes, boolean>;
 };
 
 type WebsocketMessage = Uint8Array;
 
 function mapAppMessageToWebsocketMessage(message: Message): WebsocketMessage {
-  const { buttons } = message;
+  const { buttons, angularVelocity, speed } = message;
 
   const buttonByte = Object.entries(buttons)
     .sort((a, b) => {
@@ -24,33 +25,28 @@ function mapAppMessageToWebsocketMessage(message: Message): WebsocketMessage {
     })
     .map(([type, value]) => {
       const button = buttonMappings.find((e) => e.label === type);
-      if (!button) throw Error("asd");
+      if (!button) throw Error(`${type} missing`);
       const gpio = button?.gpio;
+
+      if (!gpio) return null;
 
       return Number(value) << gpio;
     })
+    .filter((e) => e !== null)
     .reduce((acc, curr) => {
       return acc | curr;
     }, 0);
 
-  console.log(buttonByte.toString(2).padStart(8, "0"));
+  if (CONFIG.isDev) {
+    console.debug("buttons", buttonByte.toString(2).padStart(8, "0"));
+  }
 
-  return new Uint8Array([0, 0, buttonByte]);
+  return new Uint8Array([speed, angularVelocity, buttonByte]);
 }
 
-const defaultValue: Message = {
-  speed: true,
-  angularVelocity: true,
-  buttons: {
-    Lights: true,
-    Hazard: false,
-    Horn: false,
-    Power: true,
-    Flame: false,
-    Joystick: true,
-    LeftSignal: false,
-    RightSignal: false,
-  },
+const defaultValue: Omit<Message, "buttons"> = {
+  speed: 0,
+  angularVelocity: 0,
 };
 
 export function createWsStore() {
@@ -83,9 +79,12 @@ export function createWsStore() {
     if (!socket) return;
 
     const buttonStoreValues = get(buttonStore);
+    const speedStoreValue = get(speedStoreDerived);
+    const angularVelocityValue = get(angularVelocityDerived);
 
     const message = mapAppMessageToWebsocketMessage({
-      ...defaultValue,
+      speed: speedStoreValue,
+      angularVelocity: angularVelocityValue,
       buttons: buttonStoreValues,
     });
 
