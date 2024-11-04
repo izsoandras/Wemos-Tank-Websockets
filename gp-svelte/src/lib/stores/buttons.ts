@@ -3,13 +3,13 @@ import type { ButtonTypes } from "../constants";
 
 const defaults = {
   Power: false,
-  Flame: false,
-  Hazard: false,
+  AutoLights: false,
+  HighBeam: false,
+  LowBeam: false,
   Horn: false,
   Joystick: false,
   LeftSignal: false,
   RightSignal: false,
-  Lights: false,
 } as Record<ButtonTypes, boolean>;
 
 function createButtonsStore() {

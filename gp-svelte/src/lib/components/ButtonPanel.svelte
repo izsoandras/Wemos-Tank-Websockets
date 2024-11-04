@@ -5,10 +5,16 @@
 
 <div class="flex h-full w-full flex-col justify-between">
   <div class="relative">
-    <div class="grid grid-cols-4 gap-2">
+    <div class="buttonGrid">
       {#each buttonMappings.sort((a, b) => a.gpio - b.gpio) as buttonProps}
         <Button {...buttonProps} />
       {/each}
     </div>
   </div>
 </div>
+
+<style lang="postcss">
+  .buttonGrid {
+    @apply grid gap-2 grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8;
+  }
+</style>

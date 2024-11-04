@@ -2,26 +2,26 @@
   import "./app.css";
 
   import ButtonPanel from "./lib/components/ButtonPanel.svelte";
-  import Joypad from "./lib/components/Joypad.svelte";
+  import Gamepad from "./lib/components/Gamepad.svelte";
+  import Joy from "./lib/components/Joy.svelte";
 
-  import { customWsStore } from "./lib/stores/app";
-
-  let uiMode = $state<"joy" | "gamepad">("joy");
+  import { customWsStore } from "./lib/stores/ws";
+  import { controllerStore } from "./lib/stores/controller";
 
   $inspect($customWsStore).with(console.debug);
 </script>
 
 <div
-  class="h-svh min-h-svh w-svw overflow-y-clip p-2 flex flex-col justify-between"
+  class="h-svh min-h-svh w-svw overflow-y-clip overflow-x-clip p-2 flex flex-col justify-between"
 >
   <nav>
     <ButtonPanel />
   </nav>
 
-  {#if uiMode === "joy"}
-    <Joypad />
+  {#if $controllerStore === "joy"}
+    <Joy />
   {/if}
-  {#if uiMode === "gamepad"}
-    <p>gamepad</p>
+  {#if $controllerStore === "gamepad"}
+    <Gamepad />
   {/if}
 </div>

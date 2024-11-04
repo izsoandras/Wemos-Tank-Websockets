@@ -5,7 +5,7 @@
 
   type Props = GamepadButton;
 
-  let { label, icon, favouredColor, isPush }: Props = $props();
+  let { label, icon, favouredColor, isPush, customOnClick }: Props = $props();
 
   const activeColor = favouredColor ?? "#2563eb";
   let active = $state(false);
@@ -35,7 +35,7 @@
   style="--activeColor:{activeColor};"
   class:active
   class:inactive={!active}
-  onclick={handleClick}
+  onclick={customOnClick ?? handleClick}
 >
   <ButtonIcon />
   <span>{label}</span>

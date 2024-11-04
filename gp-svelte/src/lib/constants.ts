@@ -1,13 +1,14 @@
-import Lightbulb from "./components/icons/lightbulb.svelte";
+import type { Component } from "svelte";
 import TriangleAlert from "./components/icons/triangle-alert.svelte";
 import AudioLines from "./components/icons/audio-lines.svelte";
 import ArrowLeft from "./components/icons/arrow-left.svelte";
 import ArrowRight from "./components/icons/arrow-right.svelte";
 import Power from "./components/icons/power.svelte";
-import Gamepad from "./components/icons/gamepad.svelte";
-import Flame from "./components/icons/flame.svelte";
-import type { Component } from "svelte";
 import Joystick from "./components/icons/joystick.svelte";
+import LowBeam from "./components/icons/low-beam.svelte";
+import HighBeam from "./components/icons/high-beam.svelte";
+import { controllerStore } from "./stores/controller";
+import Auto from "./components/icons/auto.svelte";
 
 type RGB = `rgb(${number}, ${number}, ${number})`;
 type RGBA = `rgba(${number}, ${number}, ${number}, ${number})`;
@@ -16,74 +17,77 @@ type HEX = `#${string}`;
 type Color = RGB | RGBA | HEX;
 
 export type ButtonTypes =
-  | "Lights"
-  | "Hazard"
+  | "LowBeam"
+  | "HighBeam"
+  | "AutoLights"
   | "Horn"
   | "Power"
-  | "Flame"
   | "Joystick"
   | "LeftSignal"
   | "RightSignal";
 
 export interface GamepadButton {
   label: ButtonTypes;
-  gpio: number;
+  gpio?: number;
   icon: Component;
   favouredColor?: Color;
   isPush?: boolean;
+  customOnClick?: () => void;
 }
 
 const colors = {
   red: "#dc2626",
   yellow: "#f59e0b",
   darkBlue: "#1e3a8a",
+  green: "#008000",
 } as const satisfies Record<string, Color>;
 
 export const buttonMappings: GamepadButton[] = [
   {
-    label: "Lights",
+    label: "LowBeam",
     gpio: 0,
-    icon: Lightbulb,
+    icon: LowBeam,
+    favouredColor: colors.green,
+  },
+  {
+    label: "HighBeam",
+    gpio: 1,
+    icon: HighBeam,
     favouredColor: colors.darkBlue,
   },
   {
-    label: "Hazard",
-    gpio: 1,
-    icon: TriangleAlert,
+    label: "AutoLights",
+    gpio: 2,
+    icon: Auto,
   },
   {
     label: "Horn",
-    gpio: 2,
+    gpio: 3,
     icon: AudioLines,
-    isPush: true,
   },
-
   {
     label: "Power",
-    gpio: 3,
+    gpio: 4,
     icon: Power,
     favouredColor: colors.red,
   },
   {
-    label: "Flame",
-    gpio: 4,
-    icon: Flame,
-  },
-  {
-    label: "Joystick",
-    gpio: 5,
-    icon: Joystick,
-  },
-  {
     label: "LeftSignal",
-    gpio: 6,
+    gpio: 5,
     icon: ArrowLeft,
     favouredColor: colors.yellow,
   },
   {
     label: "RightSignal",
-    gpio: 7,
+    gpio: 6,
     icon: ArrowRight,
     favouredColor: colors.yellow,
+  },
+  {
+    label: "Joystick",
+    icon: Joystick,
+    customOnClick() {
+      controllerStore.toggle();
+    },
   },
 ];
