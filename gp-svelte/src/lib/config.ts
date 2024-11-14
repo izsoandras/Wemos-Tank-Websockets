@@ -2,5 +2,5 @@ const isDev = import.meta.env.DEV;
 
 export const CONFIG = {
   isDev,
-  interval: !isDev ? 150 : 2000,
+  interval: !isDev ? 10 : 2000,
 };
