@@ -3,7 +3,6 @@ import TriangleAlert from "./components/icons/triangle-alert.svelte";
 import AudioLines from "./components/icons/audio-lines.svelte";
 import ArrowLeft from "./components/icons/arrow-left.svelte";
 import ArrowRight from "./components/icons/arrow-right.svelte";
-import Power from "./components/icons/power.svelte";
 import Joystick from "./components/icons/joystick.svelte";
 import LowBeam from "./components/icons/low-beam.svelte";
 import HighBeam from "./components/icons/high-beam.svelte";
@@ -21,10 +20,11 @@ export type ButtonTypes =
   | "HighBeam"
   | "AutoLights"
   | "Horn"
-  | "Power"
+  | "Emergency"
   | "Joystick"
   | "LeftSignal"
-  | "RightSignal";
+  | "RightSignal"
+  | "AutoSignal";
 
 export interface GamepadButton {
   label: ButtonTypes;
@@ -66,9 +66,9 @@ export const buttonMappings: GamepadButton[] = [
     icon: AudioLines,
   },
   {
-    label: "Power",
+    label: "Emergency",
     gpio: 4,
-    icon: Power,
+    icon: TriangleAlert,
     favouredColor: colors.red,
   },
   {
@@ -81,6 +81,12 @@ export const buttonMappings: GamepadButton[] = [
     label: "RightSignal",
     gpio: 6,
     icon: ArrowRight,
+    favouredColor: colors.yellow,
+  },
+  {
+    label: "AutoSignal",
+    gpio: 7,
+    icon: Auto,
     favouredColor: colors.yellow,
   },
   {
