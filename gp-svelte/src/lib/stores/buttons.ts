@@ -2,7 +2,7 @@ import { writable } from "svelte/store";
 import type { ButtonTypes } from "../constants";
 
 const defaults = {
-  Power: false,
+  AutoSignal: false,
   AutoLights: false,
   HighBeam: false,
   LowBeam: false,
