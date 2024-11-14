@@ -154,9 +154,9 @@
   }
 
   .coordinates {
-    font-family: Arial, sans-serif;
     font-size: 16px;
     margin-bottom: 20px;
+
     @apply select-none;
   }
 
