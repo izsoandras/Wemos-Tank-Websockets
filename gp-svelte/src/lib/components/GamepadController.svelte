@@ -1,18 +1,24 @@
 <script lang="ts">
+  import { angularVelocityStore, speedStore } from "../stores/controller";
   import Joy from "./Joy.svelte";
 
-  let x1 = $state(0);
-  let y1 = $state(0);
+  let vertical = $state({ x: 0, y: 0 });
+  let horizontal = $state({ x: 0, y: 0 });
 
-  let x2 = $state(0);
-  let y2 = $state(0);
+  const radius = 100;
 
-  const radius = 80;
+  $effect(() => {
+    speedStore.set((vertical.y / 100) * -1);
+  });
+
+  $effect(() => {
+    angularVelocityStore.set(horizontal.x / 100);
+  });
 </script>
 
 <div>
-  <Joy oneAxis="x" {radius} x_coordinate={x1} y_coordinate={y1} />
-  <Joy oneAxis="y" {radius} x_coordinate={x2} y_coordinate={y2} />
+  <Joy oneAxis="x" {radius} bind:outputCoord={vertical} />
+  <Joy oneAxis="y" {radius} bind:outputCoord={horizontal} />
 </div>
 
 <style lang="postcss">

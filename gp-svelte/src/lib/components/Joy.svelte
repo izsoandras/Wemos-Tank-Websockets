@@ -1,17 +1,13 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import type { MouseEventHandler } from "svelte/elements";
   interface Props {
     showValues?: boolean;
-    x_coordinate: number;
-    y_coordinate: number;
+    outputCoord: { x: number; y: number };
     oneAxis?: "x" | "y";
     radius?: number;
   }
   let {
     showValues,
-    x_coordinate = $bindable(),
-    y_coordinate = $bindable(),
+    outputCoord = $bindable(),
     radius = 100,
     oneAxis,
   }: Props = $props();
@@ -124,8 +120,7 @@
   function stopDrawing() {
     paint = false;
     drawJoystick(container.width / 2, container.height / 2);
-    x_coordinate = 0;
-    y_coordinate = 0;
+    outputCoord = { x: 0, y: 0 };
 
     speed = 0;
     angle = 0;
@@ -159,8 +154,10 @@
           radius
       );
 
-      x_coordinate = Math.round(x - origin.x);
-      y_coordinate = Math.round(y - origin.y);
+      outputCoord = {
+        x: Math.round(x - origin.x),
+        y: Math.round(y - origin.y),
+      };
 
       angle = angleInDegrees;
     }
@@ -172,7 +169,8 @@
 <div class="joystick-container" bind:this={parent}>
   {#if showValues}
     <p class="coordinates">
-      X: <span>{x_coordinate}</span> Y: <span>{y_coordinate}</span> Speed:
+      X: <span>{outputCoord.x}</span> Y: <span>{outputCoord.y}</span>
+      Speed:
       <span>{speed}</span>% Angle: <span>{angle}</span>
     </p>
   {/if}
@@ -207,5 +205,7 @@
 
   canvas {
     touch-action: none;
+    background-image: radial-gradient(circle, #f08080, #fff);
+    @apply border-2 bg-slate-100;
   }
 </style>
