@@ -1,9 +1,9 @@
 <script lang="ts">
   import "./app.css";
 
-  import ButtonPanel from "./lib/components/ButtonPanel.svelte";
-  import Gamepad from "./lib/components/Gamepad.svelte";
-  import Joy from "./lib/components/Joy.svelte";
+  import ButtonsPanel from "./lib/components/ButtonsPanel.svelte";
+  import GamepadController from "./lib/components/GamepadController.svelte";
+  import JoyController from "./lib/components/JoyController.svelte";
 
   import { customWsStore } from "./lib/stores/ws";
   import { controllerStore } from "./lib/stores/controller";
@@ -15,13 +15,13 @@
   class="h-svh min-h-svh w-svw overflow-y-clip overflow-x-clip p-2 flex flex-col justify-between"
 >
   <nav>
-    <ButtonPanel />
+    <ButtonsPanel />
   </nav>
 
-  {#if $controllerStore === "joy"}
-    <Joy />
+  {#if $controllerStore === "joypad"}
+    <JoyController />
   {/if}
   {#if $controllerStore === "gamepad"}
-    <Gamepad />
+    <GamepadController />
   {/if}
 </div>

@@ -1,11 +1,13 @@
 import { derived, writable } from "svelte/store";
 
+export type InputDeviceType = "joypad" | "gamepad";
+
 function createControllerStore() {
-  const { set, subscribe, update } = writable<"joy" | "gamepad">("joy");
+  const { set, subscribe, update } = writable<InputDeviceType>("joypad");
 
   return {
     subscribe,
-    toggle: () => update((val) => (val === "joy" ? "gamepad" : "joy")),
+    toggle: () => update((val) => (val === "joypad" ? "gamepad" : "joypad")),
   };
 }
 

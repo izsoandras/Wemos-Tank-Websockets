@@ -7,7 +7,6 @@ const defaults = {
   HighBeam: false,
   LowBeam: false,
   Horn: false,
-  Joystick: false,
   LeftSignal: false,
   RightSignal: false,
 } as Record<ButtonTypes, boolean>;

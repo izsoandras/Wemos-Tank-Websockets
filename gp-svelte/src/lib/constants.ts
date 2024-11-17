@@ -21,18 +21,16 @@ export type ButtonTypes =
   | "AutoLights"
   | "Horn"
   | "Emergency"
-  | "Joystick"
   | "LeftSignal"
   | "RightSignal"
   | "AutoSignal";
 
 export interface GamepadButton {
   label: ButtonTypes;
-  gpio?: number;
+  gpio: number;
   icon: Component;
   favouredColor?: Color;
   isPush?: boolean;
-  customOnClick?: () => void;
 }
 
 const colors = {
@@ -88,12 +86,5 @@ export const buttonMappings: GamepadButton[] = [
     gpio: 7,
     icon: Auto,
     favouredColor: colors.yellow,
-  },
-  {
-    label: "Joystick",
-    icon: Joystick,
-    customOnClick() {
-      controllerStore.toggle();
-    },
   },
 ];

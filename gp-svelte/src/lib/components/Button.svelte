@@ -2,6 +2,7 @@
   import { CONFIG } from "../config";
   import type { GamepadButton } from "../constants";
   import { buttonStore } from "../stores/buttons";
+  import ButtonBase from "./ButtonBase.svelte";
 
   type Props = GamepadButton;
 
@@ -31,27 +32,4 @@
   }
 </script>
 
-<button
-  style="--activeColor:{activeColor};"
-  class:active
-  class:inactive={!active}
-  onclick={customOnClick ?? handleClick}
->
-  <ButtonIcon />
-  <span>{label}</span>
-</button>
-
-<style lang="postcss">
-  button {
-    @apply aspect-square flex flex-col items-center justify-center gap-1 rounded-md text-white transition-colors;
-    filter: drop-shadow(0px 0px 2px #000);
-  }
-
-  .active {
-    background-color: var(--activeColor);
-  }
-
-  .inactive {
-    @apply bg-gray-900;
-  }
-</style>
+<ButtonBase {active} {activeColor} {handleClick} {label} {icon} />

@@ -1,6 +1,8 @@
 <script lang="ts">
   import Button from "./Button.svelte";
   import { buttonMappings } from "../constants";
+  import ButtonBase from "./ButtonBase.svelte";
+  import InputDeviceButton from "./InputDeviceButton.svelte";
 </script>
 
 <div class="flex h-full w-full flex-col justify-between">
@@ -9,6 +11,7 @@
       {#each buttonMappings.sort((a, b) => a.gpio - b.gpio) as buttonProps}
         <Button {...buttonProps} />
       {/each}
+      <InputDeviceButton />
     </div>
   </div>
 </div>
