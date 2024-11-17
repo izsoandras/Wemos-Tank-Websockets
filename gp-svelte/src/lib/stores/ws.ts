@@ -44,11 +44,6 @@ function mapAppMessageToWebsocketMessage(message: Message): WebsocketMessage {
   return new Uint8Array([speed, angularVelocity, buttonByte]);
 }
 
-const defaultValue: Omit<Message, "buttons"> = {
-  speed: 0,
-  angularVelocity: 0,
-};
-
 export function createWsStore() {
   let socket: WebSocket | null = null;
   let intervalRunning: boolean = false;
