@@ -6,17 +6,23 @@
   let vertical = $state({ x: 0, y: 0 });
   let horizontal = $state({ x: 0, y: 0 });
 
+  /*
+    v  =  (R + L) / 2
+    w =  (R - L) / (2*d)
+  */
+  const d = 5;
+
   let v = $derived({
-    x: Math.round(horizontal.x * 100),
-    y: Math.round(vertical.y * 100),
+    v: Math.round(((vertical.y - horizontal.x) / 2) * 100),
+    w: Math.round(((vertical.y + horizontal.x) / (2 * d)) * 100),
   });
 
   $effect(() => {
-    speedStore.set(v.y);
+    speedStore.set(v.v);
   });
 
   $effect(() => {
-    angularVelocityStore.set(v.x);
+    angularVelocityStore.set(v.w);
   });
 
   let left = $state<HTMLElement | null>(null);
@@ -59,8 +65,8 @@
 
 <div class="gamepad-container relative">
   <div class="absolute top-2 left-2">
-    <span>X: {v.x}</span>
-    <span>Y: {v.y}</span>
+    <span>velocity: {v.v}</span>
+    <span>circular: {v.w}</span>
   </div>
   <div class="relative size-full">
     <div bind:this={left}></div>
