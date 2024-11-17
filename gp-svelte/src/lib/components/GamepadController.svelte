@@ -26,10 +26,10 @@
     const joystickL = nipplejs.create({
       zone: left as HTMLElement,
       mode: "static",
-      position: { left: "25%", top: "50%" },
+      position: { left: "20%", top: "50%" },
       color: "green",
       lockX: true,
-      size: 150,
+      size: 100,
     });
     joystickL.on("move", (_, data) => {
       horizontal = data.vector;
@@ -42,10 +42,10 @@
     const joystickR = nipplejs.create({
       zone: right as HTMLElement,
       mode: "static",
-      position: { left: "75%", top: "50%" },
+      position: { left: "80%", top: "50%" },
       color: "red",
       lockY: true,
-      size: 150,
+      size: 100,
     });
     joystickR.on("move", (_, data) => {
       vertical = data.vector;
