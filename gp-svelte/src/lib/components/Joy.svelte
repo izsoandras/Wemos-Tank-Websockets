@@ -1,136 +1,181 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { angularVelocityStore, speedStore } from "../stores/controller";
+  import type { MouseEventHandler } from "svelte/elements";
+  interface Props {
+    showValues?: boolean;
+    x_coordinate: number;
+    y_coordinate: number;
+    oneAxis?: "x" | "y";
+    radius?: number;
+  }
+  let {
+    showValues,
+    x_coordinate = $bindable(),
+    y_coordinate = $bindable(),
+    radius = 100,
+    oneAxis,
+  }: Props = $props();
+
+  let parent = $state<HTMLDivElement | null>(null);
 
   let canvas = $state<HTMLCanvasElement | undefined>(undefined);
-  let ctx = $derived(canvas?.getContext("2d"));
-  let width = $state<number>(window.innerWidth);
-  let radius = 100;
-  let height = $state<number>(radius * 4.5);
-  // svelte-ignore state_referenced_locally
-  let x_orig = $state<number>(width / 2);
-  // svelte-ignore state_referenced_locally
-  let y_orig = $state<number>(height / 2);
-  let coord = { x: 0, y: 0 };
-  let paint = false;
-  let x_coordinate = $state(0);
-  let y_coordinate = $state(0);
+  let canvasCtx = $derived(canvas?.getContext("2d"));
+
+  /**
+   * Canvas container size
+   */
+  let container = $derived({
+    width: parent?.offsetWidth ?? window.innerWidth,
+    height: radius * 3.5,
+  });
+
+  /**
+   * Inner center
+   */
+  let origin = $derived({
+    x: container.width / 2,
+    y: container.height / 2,
+  });
+
+  /**
+   * Position inside canvas, normalized
+   */
+  let coord = $state({ x: 0, y: 0 });
+
+  /**
+   * Is painting?
+   */
+  let paint = $state(false);
   let speed = $state(0);
   let angle = $state(0);
 
-  onMount(() => {
+  $effect(() => {
     resize();
   });
 
   function resize() {
     if (!canvas) return;
-    width = window.innerWidth;
-    height = radius * 4.5;
-    canvas.width = width;
-    canvas.height = height;
-    x_orig = width / 2;
-    y_orig = height / 2;
-    drawJoystick(width / 2, height / 2);
+
+    canvas.width = container.width;
+    canvas.height = container.height;
+    drawJoystick(container.width / 2, container.height / 2);
   }
 
   function drawJoystick(x: number, y: number) {
-    if (!canvas || !ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2, true);
-    ctx.fillStyle = "#F08080";
-    ctx.fill();
-    ctx.strokeStyle = "#F6ABAB";
-    ctx.lineWidth = 8;
-    ctx.stroke();
+    if (!canvas || !canvasCtx) return;
+    canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+    canvasCtx.beginPath();
+    canvasCtx.arc(x, y, radius, 0, Math.PI * 2, true);
+    canvasCtx.fillStyle = "#F08080";
+    canvasCtx.fill();
+    canvasCtx.strokeStyle = "#F6ABAB";
+    canvasCtx.lineWidth = 8;
+    canvasCtx.stroke();
   }
 
-  function getPosition(event) {
+  /**
+   * Sets current position in `coord`
+   * @param event
+   */
+  function getPosition(event: MouseEvent | TouchEvent) {
     if (!canvas) return;
-    const mouse_x = event.clientX || event.touches[0].clientX;
-    const mouse_y = event.clientY || event.touches[0].clientY;
+
+    let mouse_x, mouse_y;
+
+    if (event instanceof MouseEvent) {
+      mouse_x = event.clientX;
+      mouse_y = event.clientY;
+    } else {
+      mouse_x = event.touches[0].clientX;
+      mouse_y = event.touches[0].clientY;
+    }
+
     coord.x = mouse_x - canvas.offsetLeft;
     coord.y = mouse_y - canvas.offsetTop;
+
+    if (oneAxis === "x") {
+      coord.x = origin.x;
+    }
+
+    if (oneAxis === "y") {
+      coord.y = origin.y;
+    }
+
+    return { x: coord.x, y: coord.y };
   }
 
-  function is_it_in_the_circle() {
+  function isInCircle() {
     const current_radius = Math.sqrt(
-      Math.pow(coord.x - x_orig, 2) + Math.pow(coord.y - y_orig, 2)
+      Math.pow(coord.x - origin.x, 2) + Math.pow(coord.y - origin.y, 2)
     );
     return radius >= current_radius;
   }
 
-  function startDrawing(event) {
+  function startDrawing(event: MouseEvent | TouchEvent) {
     paint = true;
     getPosition(event);
-    if (is_it_in_the_circle()) {
-      drawJoystick(coord.x, coord.y);
+
+    if (isInCircle()) {
+      drawJoystick(coord.x * 10, coord.y);
       Draw(event);
     }
   }
 
   function stopDrawing() {
     paint = false;
-    drawJoystick(width / 2, height / 2);
+    drawJoystick(container.width / 2, container.height / 2);
     x_coordinate = 0;
     y_coordinate = 0;
-
-    speedStore.reset();
-    angularVelocityStore.reset();
 
     speed = 0;
     angle = 0;
   }
 
-  function Draw(event) {
+  function Draw(event: MouseEvent | TouchEvent) {
     if (paint) {
-      let angle_in_degrees, x, y;
-      const angleRad = Math.atan2(coord.y - y_orig, coord.x - x_orig);
+      let x, y;
+      const angleRad = Math.atan2(coord.y - origin.y, coord.x - origin.x);
 
-      if (Math.sign(angleRad) == -1) {
-        angle_in_degrees = Math.round((-angleRad * 180) / Math.PI);
-      } else {
-        angle_in_degrees = Math.round(360 - (angleRad * 180) / Math.PI);
-      }
+      const angleInDegrees =
+        Math.sign(angleRad) == -1
+          ? Math.round((-angleRad * 180) / Math.PI)
+          : Math.round(360 - (angleRad * 180) / Math.PI);
 
-      if (is_it_in_the_circle()) {
-        drawJoystick(coord.x, coord.y);
+      if (isInCircle()) {
         x = coord.x;
         y = coord.y;
+        drawJoystick(coord.x, coord.y);
       } else {
-        x = radius * Math.cos(angleRad) + x_orig;
-        y = radius * Math.sin(angleRad) + y_orig;
+        x = radius * Math.cos(angleRad) + origin.x;
+        y = radius * Math.sin(angleRad) + origin.y;
         drawJoystick(x, y);
       }
 
       getPosition(event);
 
       speed = Math.round(
-        (100 * Math.sqrt(Math.pow(x - x_orig, 2) + Math.pow(y - y_orig, 2))) /
+        (100 *
+          Math.sqrt(Math.pow(x - origin.x, 2) + Math.pow(y - origin.y, 2))) /
           radius
       );
 
-      x_coordinate = Math.round(x - x_orig);
-      y_coordinate = Math.round(y - y_orig);
+      x_coordinate = Math.round(x - origin.x);
+      y_coordinate = Math.round(y - origin.y);
 
-      speedStore.set((y_coordinate / 100) * -1);
-      angularVelocityStore.set(x_coordinate / 100);
-
-      angle = angle_in_degrees;
-
-      // Uncomment the following line if you want to implement the send function
-      // send(x_coordinate, y_coordinate, speed, angle);
+      angle = angleInDegrees;
     }
   }
 </script>
 
 <svelte:window onresize={() => resize()} />
 
-<div class="joystick-container">
-  <p class="coordinates">
-    X: <span>{x_coordinate}</span> Y: <span>{y_coordinate}</span> Speed:
-    <span>{speed}</span>% Angle: <span>{angle}</span>
-  </p>
+<div class="joystick-container" bind:this={parent}>
+  {#if showValues}
+    <p class="coordinates">
+      X: <span>{x_coordinate}</span> Y: <span>{y_coordinate}</span> Speed:
+      <span>{speed}</span>% Angle: <span>{angle}</span>
+    </p>
+  {/if}
   <canvas
     bind:this={canvas}
     onmousedown={startDrawing}
