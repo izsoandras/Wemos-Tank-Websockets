@@ -6,13 +6,17 @@
   let horizontal = $state({ x: 0, y: 0 });
 
   const radius = 50;
-
-  $effect(() => {
-    speedStore.set(((vertical.y * (100 / radius)) / 100) * -1);
+  let v = $derived({
+    x: Math.round(horizontal.x * (100 / radius)),
+    y: Math.round(vertical.y * (100 / radius)) * -1,
   });
 
   $effect(() => {
-    angularVelocityStore.set((horizontal.x * (100 / radius)) / 100);
+    speedStore.set(v.y);
+  });
+
+  $effect(() => {
+    angularVelocityStore.set(v.x);
   });
 
   let parent = $state<HTMLDivElement | null>(null);
@@ -29,8 +33,8 @@
   $inspect(parent?.offsetWidth);
 </script>
 
-<span>X: {horizontal.x}</span>
-<span>Y: {vertical.y * -1}</span>
+<span>X: {v.x}</span>
+<span>Y: {v.y}</span>
 
 <div class="gamepad-container" bind:this={parent}>
   {#if parent}

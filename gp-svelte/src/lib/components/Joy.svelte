@@ -169,13 +169,6 @@
 <svelte:window onresize={() => resize()} />
 
 <div class="joystick-container" bind:this={parent}>
-  {#if showValues}
-    <p class="coordinates">
-      X: <span>{outputCoord.x}</span> Y: <span>{outputCoord.y}</span>
-      Speed:
-      <span>{speed}</span>% Angle: <span>{angle}</span>
-    </p>
-  {/if}
   <canvas
     bind:this={canvas}
     onmousedown={startDrawing}

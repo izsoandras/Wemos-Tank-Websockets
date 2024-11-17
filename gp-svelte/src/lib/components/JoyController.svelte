@@ -2,15 +2,27 @@
   import { angularVelocityStore, speedStore } from "../stores/controller";
   import Joy from "./Joy.svelte";
 
+  const radius = 80;
+
   let outputCoord = $state({ x: 0, y: 0 });
 
-  $effect(() => {
-    speedStore.set((outputCoord.y / 100) * -1);
+  let v = $derived({
+    x: Math.round(outputCoord.x * (100 / radius)),
+    y: Math.round(outputCoord.y * (100 / radius) * -1),
   });
 
   $effect(() => {
-    angularVelocityStore.set(outputCoord.x / 100);
+    speedStore.set(v.y);
+  });
+
+  $effect(() => {
+    angularVelocityStore.set(v.x);
   });
 </script>
 
-<Joy showValues bind:outputCoord />
+<p class="coordinates">
+  X: <span>{v.x}</span> Y:
+  <span>{v.y}</span>
+</p>
+
+<Joy {radius} showValues bind:outputCoord />
