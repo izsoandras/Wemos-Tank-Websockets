@@ -16,5 +16,4 @@
   });
 </script>
 
-JOY
 <Joy showValues x_coordinate={x} y_coordinate={y} />

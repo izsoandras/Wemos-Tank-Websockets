@@ -10,7 +10,6 @@
   const radius = 80;
 </script>
 
-GAMEPAD
 <div>
   <Joy oneAxis="x" {radius} x_coordinate={x1} y_coordinate={y1} />
   <Joy oneAxis="y" {radius} x_coordinate={x2} y_coordinate={y2} />
