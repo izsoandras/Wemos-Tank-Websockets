@@ -27,7 +27,7 @@
   onclick={handleClick}
 >
   <ButtonIcon />
-  <span>{label}</span>
+  <span class="text-sm">{label}</span>
 </button>
 
 <style lang="postcss">
