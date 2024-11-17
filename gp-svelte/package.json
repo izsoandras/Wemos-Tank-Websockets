@@ -23,5 +23,8 @@
     "check": "svelte-check --tsconfig ./tsconfig.json && tsc -p tsconfig.node.json",
     "ws-server": "bun --watch server.js"
   },
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "nipplejs": "^0.10.2"
+  }
 }

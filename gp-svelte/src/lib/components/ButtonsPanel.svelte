@@ -19,6 +19,6 @@
 
 <style lang="postcss">
   .buttonGrid {
-    @apply grid gap-2 grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8;
+    @apply grid gap-2 grid-cols-5 md:grid-cols-10;
   }
 </style>
