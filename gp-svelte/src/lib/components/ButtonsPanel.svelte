@@ -1,8 +1,8 @@
 <script lang="ts">
   import Button from "./Button.svelte";
   import { buttonMappings } from "../constants";
-  import ButtonBase from "./ButtonBase.svelte";
   import InputDeviceButton from "./InputDeviceButton.svelte";
+  import FullScreenButton from "./FullScreenButton.svelte";
 </script>
 
 <div class="flex h-full w-full flex-col justify-between">
@@ -12,6 +12,7 @@
         <Button {...buttonProps} />
       {/each}
       <InputDeviceButton />
+      <FullScreenButton />
     </div>
   </div>
 </div>
