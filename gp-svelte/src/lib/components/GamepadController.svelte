@@ -10,11 +10,11 @@
     v  =  (R + L) / 2
     w =  (R - L) / (2*d)
   */
-  const d = 5;
+  const d = 1.5;
 
   let v = $derived({
-    v: Math.round(((vertical.y - horizontal.x) / 2) * 100),
-    w: Math.round(((vertical.y + horizontal.x) / (2 * d)) * 100),
+    v: Math.round(((vertical.y - horizontal.x) / 2) * 1000) / 1000,
+    w: Math.round(((vertical.y + horizontal.x) / (2 * d)) * 1000) / 1000,
   });
 
   $effect(() => {

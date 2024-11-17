@@ -7,8 +7,6 @@
 
   import { customWsStore } from "./lib/stores/ws";
   import { controllerStore } from "./lib/stores/controller";
-
-  $inspect($customWsStore).with(console.debug);
 </script>
 
 <div
@@ -17,6 +15,7 @@
   <nav>
     <ButtonsPanel />
   </nav>
+  {JSON.stringify($customWsStore)}
 
   {#if $controllerStore === "joypad"}
     <JoyController />

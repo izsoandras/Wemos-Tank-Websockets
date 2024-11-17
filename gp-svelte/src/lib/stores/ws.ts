@@ -50,7 +50,8 @@ export function createWsStore() {
   let intervalId: number | undefined = undefined;
 
   const { subscribe } = writable({}, (set) => {
-    const uri = import.meta.env.VITE_WS_SERVER as string;
+    const uri =
+      import.meta.env.VITE_WS_SERVER ?? ("ws://localhost:8080" as string);
     const soc = new WebSocket(uri);
     soc.addEventListener("open", () => {
       set({ message: "<client>: Connection Open" });

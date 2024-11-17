@@ -2,13 +2,11 @@
   import { angularVelocityStore, speedStore } from "../stores/controller";
   import NippleJs from "./NippleJs.svelte";
 
-  const radius = 80;
-
   let outputCoord = $state({ x: 0, y: 0 });
 
   let v = $derived({
-    x: Math.round(outputCoord.x * 100),
-    y: Math.round(outputCoord.y * 100),
+    x: Math.round(outputCoord.x * 1000) / 1000,
+    y: Math.round(outputCoord.y * 1000) / 1000,
   });
 
   $effect(() => {
