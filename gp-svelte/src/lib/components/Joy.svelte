@@ -4,12 +4,14 @@
     outputCoord: { x: number; y: number };
     oneAxis?: "x" | "y";
     radius?: number;
+    parentWidth?: number;
   }
   let {
     showValues,
     outputCoord = $bindable(),
     radius = 100,
     oneAxis,
+    parentWidth,
   }: Props = $props();
 
   let parent = $state<HTMLDivElement | null>(null);
@@ -21,8 +23,8 @@
    * Canvas container size
    */
   let container = $derived({
-    width: parent?.offsetWidth ?? window.innerWidth,
-    height: radius * 3.5,
+    width: parentWidth ?? screen.width,
+    height: radius * 4.5,
   });
 
   /**
@@ -62,9 +64,9 @@
     canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
     canvasCtx.beginPath();
     canvasCtx.arc(x, y, radius, 0, Math.PI * 2, true);
-    canvasCtx.fillStyle = "#F08080";
+    canvasCtx.fillStyle = "#444";
     canvasCtx.fill();
-    canvasCtx.strokeStyle = "#F6ABAB";
+    canvasCtx.strokeStyle = "#fff";
     canvasCtx.lineWidth = 8;
     canvasCtx.stroke();
   }
