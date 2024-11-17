@@ -9,6 +9,7 @@ const defaults = {
   Horn: false,
   LeftSignal: false,
   RightSignal: false,
+  Emergency: false,
 } as Record<ButtonTypes, boolean>;
 
 function createButtonsStore() {

@@ -28,7 +28,7 @@ function mapAppMessageToWebsocketMessage(message: Message): WebsocketMessage {
       if (!button) throw Error(`${type} missing`);
       const gpio = button?.gpio;
 
-      if (!gpio) return null;
+      if (gpio === undefined || gpio == null) return null;
 
       return Number(value) << gpio;
     })
