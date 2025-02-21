@@ -3,8 +3,8 @@
   import { angularVelocityStore, speedStore } from "../stores/controller";
   import nipplejs from "nipplejs";
 
-  let vertical = $state({ x: 0, y: 0 });
-  let horizontal = $state({ x: 0, y: 0 });
+  let joyRightValue = $state({ x: 0, y: 0 });
+  let joyLeftValue = $state({ x: 0, y: 0 });
 
   /*
     v  =  (R + L) / 2
@@ -13,8 +13,8 @@
   const d = 1.5;
 
   let v = $derived({
-    v: Math.round(((vertical.y - horizontal.x) / 2) * 1000) / 1000,
-    w: Math.round(((vertical.y + horizontal.x) / (2 * d)) * 1000) / 1000,
+    v: Math.round(((joyRightValue.y + joyLeftValue.y) / 2) * 1000) / 1000,
+    w: Math.round(((joyRightValue.y - joyLeftValue.y) / (2 * d)) * 1000) / 1000,
   });
 
   $effect(() => {
@@ -34,15 +34,15 @@
       mode: "static",
       position: { left: "20%", top: "50%" },
       color: "green",
-      lockX: true,
+      lockY: true,
       size: 100,
     });
     joystickL.on("move", (_, data) => {
-      horizontal = data.vector;
+      joyLeftValue = data.vector;
     });
 
     joystickL.on("end", () => {
-      horizontal = { x: 0, y: 0 };
+      joyLeftValue = { x: 0, y: 0 };
     });
 
     const joystickR = nipplejs.create({
@@ -54,11 +54,11 @@
       size: 100,
     });
     joystickR.on("move", (_, data) => {
-      vertical = data.vector;
+      joyRightValue = data.vector;
     });
 
     joystickR.on("end", () => {
-      vertical = { x: 0, y: 0 };
+      joyRightValue = { x: 0, y: 0 };
     });
   });
 </script>
