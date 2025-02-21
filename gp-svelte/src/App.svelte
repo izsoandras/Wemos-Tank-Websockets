@@ -7,7 +7,10 @@
 
   import { customWsStore } from "./lib/stores/ws";
   import { controllerStore } from "./lib/stores/controller";
+  import AppVersion from "./lib/components/AppVersion.svelte";
 </script>
+
+<AppVersion />
 
 <div
   class="h-svh min-h-svh w-svw overflow-y-clip overflow-x-clip p-2 flex flex-col justify-between"

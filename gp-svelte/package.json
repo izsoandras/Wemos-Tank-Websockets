@@ -4,6 +4,7 @@
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^4.0.4",
     "@tsconfig/svelte": "^5.0.4",
+    "@types/node": "^22.13.5",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.5.3",
     "rollup-plugin-visualizer": "^5.14.0",
