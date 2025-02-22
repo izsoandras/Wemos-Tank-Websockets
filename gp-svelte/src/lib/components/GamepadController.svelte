@@ -35,7 +35,7 @@
       position: { left: "20%", top: "50%" },
       color: "green",
       lockY: true,
-      size: 100,
+      size: 140,
     });
     joystickL.on("move", (_, data) => {
       joyLeftValue = data.vector;
@@ -51,7 +51,7 @@
       position: { left: "80%", top: "50%" },
       color: "red",
       lockY: true,
-      size: 100,
+      size: 140,
     });
     joystickR.on("move", (_, data) => {
       joyRightValue = data.vector;

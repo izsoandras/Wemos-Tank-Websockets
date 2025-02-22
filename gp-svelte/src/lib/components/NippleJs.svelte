@@ -15,7 +15,7 @@
       mode: "static",
       color: "red",
       restJoystick: true,
-      size: 150,
+      size: 200,
       position: { left: "50%", top: "50%" },
       lockX,
       lockY,
