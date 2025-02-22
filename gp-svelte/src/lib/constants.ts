@@ -30,7 +30,6 @@ export interface GamepadButton {
   gpio: number;
   icon: Component;
   favouredColor?: Color;
-  isPush?: boolean;
   isFlashing?: boolean;
 }
 
