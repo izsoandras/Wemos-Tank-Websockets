@@ -7,6 +7,7 @@
     handleClick: () => void;
     label: string;
     icon: Component;
+    blinking?: boolean;
   }
 
   let {
@@ -15,6 +16,7 @@
     handleClick,
     label,
     icon,
+    blinking,
   }: Props = $props();
 
   const ButtonIcon = $derived(icon);
@@ -25,6 +27,7 @@
   class:active
   class:inactive={!active}
   onclick={handleClick}
+  class:blinking={active && blinking}
 >
   <ButtonIcon />
   <span class="text-xs">{label}</span>
@@ -40,7 +43,23 @@
     background-color: var(--activeColor);
   }
 
+  .blinking {
+    animation: blink 1s infinite;
+  }
+
   .inactive {
     @apply bg-gray-900;
+  }
+
+  @keyframes blink {
+    0% {
+      background-color: #000;
+    }
+    50% {
+      background-color: var(--activeColor);
+    }
+    100% {
+      background-color: #000;
+    }
   }
 </style>

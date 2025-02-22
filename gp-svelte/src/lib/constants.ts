@@ -31,6 +31,7 @@ export interface GamepadButton {
   icon: Component;
   favouredColor?: Color;
   isPush?: boolean;
+  isFlashing?: boolean;
 }
 
 const colors = {
@@ -68,18 +69,21 @@ export const buttonMappings: GamepadButton[] = [
     gpio: 4,
     icon: TriangleAlert,
     favouredColor: colors.red,
+    isFlashing: true,
   },
   {
     label: "LeftSignal",
     gpio: 5,
     icon: ArrowLeft,
     favouredColor: colors.yellow,
+    isFlashing: true,
   },
   {
     label: "RightSignal",
     gpio: 6,
     icon: ArrowRight,
     favouredColor: colors.yellow,
+    isFlashing: true,
   },
   {
     label: "AutoSignal",

@@ -6,7 +6,8 @@
 
   type Props = GamepadButton;
 
-  let { label, icon, favouredColor, isPush, customOnClick }: Props = $props();
+  let { label, icon, favouredColor, isPush, customOnClick, isFlashing }: Props =
+    $props();
 
   const activeColor = favouredColor ?? "#2563eb";
   let active = $state(false);
@@ -32,4 +33,11 @@
   }
 </script>
 
-<ButtonBase {active} {activeColor} {handleClick} {label} {icon} />
+<ButtonBase
+  {active}
+  {activeColor}
+  {handleClick}
+  {label}
+  {icon}
+  blinking={isFlashing}
+/>
