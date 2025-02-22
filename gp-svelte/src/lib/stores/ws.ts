@@ -44,32 +44,49 @@ function mapAppMessageToWebsocketMessage(message: Message): WebsocketMessage {
   return new Uint8Array([speed, angularVelocity, buttonByte]);
 }
 
+type WSStoreType = {
+  connected: Boolean;
+  bus: Record<string, any>;
+};
+
 export function createWsStore() {
   let socket: WebSocket | null = null;
   let intervalRunning: boolean = false;
   let intervalId: number | undefined = undefined;
 
-  const { subscribe } = writable({}, (set) => {
-    const uri =
-      import.meta.env.VITE_WS_SERVER ?? ("ws://localhost:8080" as string);
-    const soc = new WebSocket(uri);
-    soc.addEventListener("open", () => {
-      set({ message: "<client>: Connection Open" });
-      _startSendInterval();
-    });
+  const { subscribe } = writable<WSStoreType>(
+    { connected: false, bus: {} },
+    (set, update) => {
+      const uri =
+        import.meta.env.VITE_WS_SERVER ?? ("ws://localhost:8080" as string);
+      const soc = new WebSocket(uri);
 
-    soc.addEventListener("message", (event) => {
-      const data = JSON.parse(event.data);
-      set(data);
-    });
+      soc.addEventListener("open", () => {
+        set({ connected: true, bus: { message: "<client>: Connection Open" } });
+        _startSendInterval();
+      });
 
-    socket = soc;
+      soc.addEventListener("close", () => {
+        update((state) => ({ ...state, connected: false }));
+      });
 
-    return () => {
-      _stopSendInterval();
-      soc.close();
-    };
-  });
+      soc.addEventListener("error", () => {
+        update((state) => ({ ...state, connected: false }));
+      });
+
+      soc.addEventListener("message", (event) => {
+        const data = JSON.parse(event.data);
+        update((state) => ({ ...state, bus: data }));
+      });
+
+      socket = soc;
+
+      return () => {
+        _stopSendInterval();
+        soc.close();
+      };
+    }
+  );
 
   const sendMessage = () => {
     if (!socket) return;
