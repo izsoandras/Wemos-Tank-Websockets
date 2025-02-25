@@ -1,3 +1,4 @@
+/*Board version: WeMos D1 R1 (2.7.4)*/
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <FS.h>
@@ -10,7 +11,7 @@
 #include <Wire.h>
 #include "WEMOS_Motor.h"
 
-#define ENABLE_MOT
+//#define ENABLE_MOT
 
 /*Physical connections*/
 #define REVERSE_LIGHT 0       // reverse lights     D3 / GPIO0
@@ -30,6 +31,14 @@ const unsigned long int minBrakeLightLength = 100;  // [ms]
 const unsigned long int timeoutms = 1000;          // [ms]
 const unsigned long int idleCycle = 30;             // [ms]
 
+/*Light duty cycles*/
+const unsigned int lowBeamDuty = 10;
+const unsigned int highBeamDuty = 50;
+const unsigned int frontPosDuty = 5;
+const unsigned int rearPosDuty = 50;
+const unsigned int rearBreakDuty = 255;
+const unsigned int reverseDuty = 255;
+
 /* Network parameters */
 const char *ssid = "TigerTank";
 const char *password = "";
@@ -48,7 +57,7 @@ int PwmFrequency = 20000;
 
 /*State variables*/
 int v, v_prev, omega, v_L, v_R = 0;
-bool emergency_signal_on, headlight_on = 0;
+bool lowBeamOn, highBeamOn, autoLightOn, hornOn, emcyOn, leftTurnOn, rightTurnOn, autoTurnOn = 0;
 bool active, breaking = 0;
 int16_t idleDuty = 0;
 int8_t idleDir = 1;
@@ -58,24 +67,55 @@ unsigned long int lastpacket = 0;
 unsigned long int lastTurnSignal = 0;
 unsigned long int lastNotBrake = 0;
 
-/*root http response: send html site*/
-void handleRoot() {
-  /*server.send_P(200, "text/html", index_html);*/
-  if(SPIFFS.exists("/index.html")){
-    File f = SPIFFS.open("/index.html","r");
-    server.streamFile(f, "text/html");
-    f.close();
-  }else{
-    Serial.println("Error: no index.html found");
-  }
-  Serial.println("handleroot: Client in.");
+/*Return file formatter text for different extensions*/
+String getFileFormat(String fileName){
+  if(fileName.endsWith(".html"))    return  "text/html";
+  else if(fileName.endsWith(".js")) return  "text/javascript";
+  else if(fileName.endsWith(".css")) return  "text/css";
+  else                              return  "text/plain";
 }
 
-/*redirect to root if page not found*/
+/*Look for a file on location passed through path.
+  Serve it and return true if found, return false if not found*/
+bool handleReadFile(String path){
+  if(SPIFFS.exists(path)){
+    String fileFormat = getFileFormat(path);
+    File file = SPIFFS.open(path, "r");
+    server.streamFile(file, fileFormat);
+    file.close();
+    
+    Serial.println("File served: "+path);
+    return true;
+  }
+  return false;
+}
+
+/*root http response: send html site*/
+void handleRoot() {
+  if(!handleReadFile("/index.html")){
+    server.send(404,"text/plain", "FileNotFound");
+  }
+}
+
+/*If http handler not found, try to serve a file,
+  if that is unsuccessful, redirect to main page*/
 void handleNotFound()
 {
-  server.sendHeader("Location", "/", true); //Redirect to our html web page
-  server.send(302, "text/plane", "");
+  if(!handleReadFile(server.uri())){
+    server.sendHeader("Location", "/", true);
+    server.send(302, "text/plane", "");
+    Serial.println("Not found: " + server.uri());
+  }
+}
+
+/*Make listing files possible to ease development*/
+void handleListFiles(){
+  String temp = "File list\n";
+  Dir dir = SPIFFS.openDir("/");
+    while (dir.next()) {
+      temp = temp + dir.fileName() + '\n';
+    }
+  server.send(200, "text/plain", temp);
 }
 
 /*websocket event handler*/
@@ -102,36 +142,26 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
         }
         Serial.println();
         if (length == 3) {
-          active = 1;
+          active = true;
           v = ((int)payload[0] - 127) * 2;
           omega = ((int)payload[1] - 127) * 2;
-
+          Serial.printf("\tv: %d,\tw: %d\n", v, omega);
+          Serial.printf("\tbtn: %d%d%d%d%d%d%d%d\n", payload[2]&1, payload[2]&2, payload[2]&4, payload[2]&8, payload[2]&16, payload[2]&32, payload[2]&64, payload[2]&128);
+          
           v_L = v - b / 2 * omega;
           v_R = v + b / 2 * omega;
 
-          Serial.printf("%d\t%d\n", v_L, v_R);
+          Serial.printf("\tWheelspeeds: %d\t%d\n", v_L, v_R);
 
-          /* Server side */
-          //          if (payload[2] & 1)
-
-          headlight_on = payload[2] & 2;
-          emergency_signal_on = payload[2] & 4;
-
-          /* RESERVED */
-          //          if (payload[2] & 8) {
-          //
-          //          } else {
-          //
-          //          }
-          //          if (payload[2] & 16) {
-          //          } else {
-          //
-          //          }
-          //          if (payload[2] & 32) {
-          //
-          //          } else {
-          //
-          //          }
+          /* Read UI state */
+          lowBeamOn = payload[2] & 1;
+          highBeamOn = payload[2] & 2;
+          autoLightOn = payload[2] & 4;
+          hornOn = payload[2] & 8;
+          emcyOn = payload[2] & 16;
+          leftTurnOn = payload[2] & 32;
+          rightTurnOn = payload[2] & 64;
+          autoTurnOn = payload[2] & 128;
 
           lastpacket = millis();
 
@@ -200,6 +230,7 @@ void setup() {
   dnsServer.start(DNS_PORT, "*", apIP);
 
   server.on("/", handleRoot);
+  server.on("/list",handleListFiles);
   server.onNotFound(handleNotFound);
   server.begin();
 
@@ -231,7 +262,7 @@ void loop() {
       webSocket.disconnect();
       ML.setmotor(_STOP);
       MR.setmotor(_STOP);
-      active = 0;
+      active = false;
     }
   }
 
@@ -258,11 +289,19 @@ void loop() {
 
     /*Handle lights*/
     // Headlight
-    digitalWrite(HEAD_LIGHT, headlight_on);
+    if(highBeamOn){
+      analogWrite(HEAD_LIGHT, highBeamDuty);
+    }else if(lowBeamOn){
+      analogWrite(HEAD_LIGHT, lowBeamDuty);
+    }else if(autoLightOn){
+      analogWrite(HEAD_LIGHT, frontPosDuty);
+    }else{
+      analogWrite(HEAD_LIGHT, 0);
+    }
 
     // Reverse light
     if (v < 0) {
-      analogWrite(REVERSE_LIGHT, 128);
+      analogWrite(REVERSE_LIGHT, reverseDuty);
     } else {
       analogWrite(REVERSE_LIGHT, 0);
     }
@@ -272,23 +311,23 @@ void loop() {
       if (breaking == 0)
         lastNotBrake = currentMillis;
       breaking = 1;
-      analogWrite(BRAKE_LIGHT, 255);
+      analogWrite(BRAKE_LIGHT, rearBreakDuty);
     } else {
-      analogWrite(BRAKE_LIGHT, 50);
+      analogWrite(BRAKE_LIGHT, rearPosDuty);
       breaking = 0;
     }
 
     // Turn signals
     if (currentMillis - lastTurnSignal >= turnSignalLength) {
       // Left turn signal
-      if (v * omega > 0 || emergency_signal_on) {
+      if (leftTurnOn || (autoTurnOn && v * omega > 0)|| emcyOn) {
         digitalWrite(LEFT_TURN_SIGNAL, !digitalRead(LEFT_TURN_SIGNAL));
       } else {
         digitalWrite(LEFT_TURN_SIGNAL, LOW);
       }
 
       // Right turn signal
-      if (v * omega < 0 || emergency_signal_on) {
+      if (rightTurnOn || (autoTurnOn && v * omega < 0) || emcyOn) {
         digitalWrite(RIGHT_TURN_SIGNAL, !digitalRead(RIGHT_TURN_SIGNAL));
       } else {
         digitalWrite(RIGHT_TURN_SIGNAL, LOW);
