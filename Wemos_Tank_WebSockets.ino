@@ -22,7 +22,7 @@
 #define HEAD_LIGHT 15         // front lights       D8 / GPIO15
 
 /*Tank physical parameters*/
-const float b = 1.0;
+const float b = 2.0;
 
 /*Timing parameters*/
 const unsigned long int activeCycle = 10;           // [ms]
@@ -56,9 +56,10 @@ Motor MR(0x30, _MOTOR_B, 1000);
 int PwmFrequency = 20000;
 
 /*State variables*/
-int v, v_prev, omega, v_L, v_R = 0;
-bool lowBeamOn, highBeamOn, autoLightOn, hornOn, emcyOn, leftTurnOn, rightTurnOn, autoTurnOn = 0;
-bool active, breaking = 0;
+float v, v_prev, omega = 0;
+float v_L, v_R = 0;       // duty cycle in %
+bool lowBeamOn, highBeamOn, autoLightOn, hornOn, emcyOn, leftTurnOn, rightTurnOn, autoTurnOn = false;
+bool active, breaking, leftTurn, rightTurn = false;
 int16_t idleDuty = 0;
 int8_t idleDir = 1;
 unsigned long int currentMillis = 0;
@@ -143,15 +144,15 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
         Serial.println();
         if (length == 3) {
           active = true;
-          v = ((int)payload[0] - 127) * 2;
-          omega = ((int)payload[1] - 127) * 2;
-          Serial.printf("\tv: %d,\tw: %d\n", v, omega);
+          v = ((float)payload[0] - 127) / 127.0;
+          omega = ((float)payload[1] - 127) / 127.0;
+          Serial.printf("\tv: %.3f,\tw: %.3f\n", v, omega);
           Serial.printf("\tbtn: %d%d%d%d%d%d%d%d\n", payload[2]&1, payload[2]&2, payload[2]&4, payload[2]&8, payload[2]&16, payload[2]&32, payload[2]&64, payload[2]&128);
           
-          v_L = v - b / 2 * omega;
-          v_R = v + b / 2 * omega;
+          v_L = (v - b / 2.0 * omega) * 100.0;
+          v_R = (v + b / 2.0 * omega) * 100.0;
 
-          Serial.printf("\tWheelspeeds: %d\t%d\n", v_L, v_R);
+          Serial.printf("\tWheel duties: %.2f\t%.2f\n", v_L, v_R);
 
           /* Read UI state */
           lowBeamOn = payload[2] & 1;
@@ -320,14 +321,16 @@ void loop() {
     // Turn signals
     if (currentMillis - lastTurnSignal >= turnSignalLength) {
       // Left turn signal
-      if (leftTurnOn || (autoTurnOn && v * omega > 0)|| emcyOn) {
+      leftTurn = (v >= 0 && omega > 0) || (v < 0 && omega < 0);
+      if (leftTurnOn || (autoTurnOn && leftTurn)|| emcyOn) {
         digitalWrite(LEFT_TURN_SIGNAL, !digitalRead(LEFT_TURN_SIGNAL));
       } else {
         digitalWrite(LEFT_TURN_SIGNAL, LOW);
       }
 
       // Right turn signal
-      if (rightTurnOn || (autoTurnOn && v * omega < 0) || emcyOn) {
+      rightTurn = (v >= 0 && omega < 0) || (v < 0 && omega > 0);
+      if (rightTurnOn || (autoTurnOn && rightTurn) || emcyOn) {
         digitalWrite(RIGHT_TURN_SIGNAL, !digitalRead(RIGHT_TURN_SIGNAL));
       } else {
         digitalWrite(RIGHT_TURN_SIGNAL, LOW);
