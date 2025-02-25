@@ -1,5 +1,6 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
+#include <FS.h>
 
 #include <ESP8266mDNS.h>
 #include <WebSocketsServer.h>
@@ -59,15 +60,22 @@ unsigned long int lastNotBrake = 0;
 
 /*root http response: send html site*/
 void handleRoot() {
-  server.send_P(200, "text/html", index_html);
+  /*server.send_P(200, "text/html", index_html);*/
+  if(SPIFFS.exists("/index.html")){
+    File f = SPIFFS.open("/index.html","r");
+    server.streamFile(f, "text/html");
+    f.close();
+  }else{
+    Serial.println("Error: no index.html found");
+  }
   Serial.println("handleroot: Client in.");
 }
 
 /*redirect to root if page not found*/
 void handleNotFound()
-{ 
-    server.sendHeader("Location", "/",true); //Redirect to our html web page 
-    server.send(302, "text/plane",""); 
+{
+  server.sendHeader("Location", "/", true); //Redirect to our html web page
+  server.send(302, "text/plane", "");
 }
 
 /*websocket event handler*/
@@ -88,7 +96,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
         //Serial.println("WS_Bin");
         // payload: v, omega, buttons
         Serial.print("WS msg received: ");
-        for(uint8_t i = 0; i < length; i++){
+        for (uint8_t i = 0; i < length; i++) {
           Serial.print(payload[i]);
           Serial.print(", \t");
         }
@@ -104,26 +112,26 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
           Serial.printf("%d\t%d\n", v_L, v_R);
 
           /* Server side */
-//          if (payload[2] & 1)
+          //          if (payload[2] & 1)
 
           headlight_on = payload[2] & 2;
           emergency_signal_on = payload[2] & 4;
 
           /* RESERVED */
-//          if (payload[2] & 8) {
-//
-//          } else {
-//
-//          }
-//          if (payload[2] & 16) {
-//          } else {
-//
-//          }
-//          if (payload[2] & 32) {
-//
-//          } else {
-//
-//          }
+          //          if (payload[2] & 8) {
+          //
+          //          } else {
+          //
+          //          }
+          //          if (payload[2] & 16) {
+          //          } else {
+          //
+          //          }
+          //          if (payload[2] & 32) {
+          //
+          //          } else {
+          //
+          //          }
 
           lastpacket = millis();
 
@@ -143,39 +151,45 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
 
 void setup() {
   Serial.begin(115200);
-  while(!Serial);
+  while (!Serial);
   Serial.println("Setup start");
 
   /*Init lights*/
   pinMode(CONNECT_LED, OUTPUT);
   digitalWrite(CONNECT_LED, HIGH);
-  
+
   pinMode(REVERSE_LIGHT, OUTPUT);
   digitalWrite(REVERSE_LIGHT, LOW);
-  
+
   pinMode(LEFT_TURN_SIGNAL, OUTPUT);
   digitalWrite(LEFT_TURN_SIGNAL, LOW);
-  
+
   pinMode(BRAKE_LIGHT, OUTPUT);
   digitalWrite(BRAKE_LIGHT, LOW);
-  
+
   pinMode(HEAD_LIGHT, OUTPUT);
   digitalWrite(HEAD_LIGHT, LOW);
-  
+
   pinMode(RIGHT_TURN_SIGNAL, OUTPUT);
   digitalWrite(RIGHT_TURN_SIGNAL, LOW);
 
   /*Init motor drivers*/
-  #ifdef ENABLE_MOT
-    ML.setfreq(PwmFrequency);
-    MR.setfreq(PwmFrequency);
-  
-    ML.setmotor(_CCW, 50);
-    MR.setmotor(_CW, 50);
-    delay(10);
-    ML.setmotor(_STOP);
-    MR.setmotor(_STOP);
-  #endif
+#ifdef ENABLE_MOT
+  ML.setfreq(PwmFrequency);
+  MR.setfreq(PwmFrequency);
+
+  ML.setmotor(_CCW, 50);
+  MR.setmotor(_CW, 50);
+  delay(10);
+  ML.setmotor(_STOP);
+  MR.setmotor(_STOP);
+#endif
+
+  /*Init file system*/
+  if (!SPIFFS.begin()) {
+    Serial.println("An Error has occurred while mounting SPIFFS");
+    return;
+  }
 
   /*Init network*/
   WiFi.mode(WIFI_AP);
@@ -184,14 +198,14 @@ void setup() {
   Serial.println(WiFi.softAPIP());
 
   dnsServer.start(DNS_PORT, "*", apIP);
-  
+
   server.on("/", handleRoot);
   server.onNotFound(handleNotFound);
   server.begin();
 
   webSocket.onEvent(webSocketEvent);
   webSocket.begin();
-  
+
   MDNS.begin(mdnsName);                        // start the multicast domain name server
   MDNS.addService("http", "tcp", 80);
   Serial.print("mDNS responder started: http://");
@@ -221,73 +235,73 @@ void loop() {
     }
   }
 
-  if(currentMillis  - lastCycle >= activeCycle && active){
+  if (currentMillis  - lastCycle >= activeCycle && active) {
     /*Handle motor*/
-    #ifdef ENABLE_MOT
-      if (v_L == 0)
-        ML.setmotor(_STOP);
-      else {
-        if (v_L > 0)
-          ML.setmotor(_CCW, v_L);
-        else
-          ML.setmotor(_CW, -v_L);
-      }
-      if (v_R == 0)
-        MR.setmotor(_STOP);
-      else {
-        if (v_R > 0)
-          MR.setmotor(_CW, v_R);
-        else
-          MR.setmotor(_CCW, -v_R);
-        }
-    #endif
+#ifdef ENABLE_MOT
+    if (v_L == 0)
+      ML.setmotor(_STOP);
+    else {
+      if (v_L > 0)
+        ML.setmotor(_CCW, v_L);
+      else
+        ML.setmotor(_CW, -v_L);
+    }
+    if (v_R == 0)
+      MR.setmotor(_STOP);
+    else {
+      if (v_R > 0)
+        MR.setmotor(_CW, v_R);
+      else
+        MR.setmotor(_CCW, -v_R);
+    }
+#endif
 
     /*Handle lights*/
     // Headlight
     digitalWrite(HEAD_LIGHT, headlight_on);
 
     // Reverse light
-    if (v < 0){
+    if (v < 0) {
       analogWrite(REVERSE_LIGHT, 128);
-    }else{
+    } else {
       analogWrite(REVERSE_LIGHT, 0);
     }
 
     // Brake light
-    if (abs(v_prev) > abs(v) || ((currentMillis - lastNotBrake) <= minBrakeLightLength)){
-      if(breaking == 0)
+    if (abs(v_prev) > abs(v) || ((currentMillis - lastNotBrake) <= minBrakeLightLength)) {
+      if (breaking == 0)
         lastNotBrake = currentMillis;
       breaking = 1;
       analogWrite(BRAKE_LIGHT, 255);
-    }else{
+    } else {
       analogWrite(BRAKE_LIGHT, 50);
       breaking = 0;
     }
 
     // Turn signals
-    if(currentMillis - lastTurnSignal >= turnSignalLength){
+    if (currentMillis - lastTurnSignal >= turnSignalLength) {
       // Left turn signal
-      if (v * omega > 0 || emergency_signal_on){
+      if (v * omega > 0 || emergency_signal_on) {
         digitalWrite(LEFT_TURN_SIGNAL, !digitalRead(LEFT_TURN_SIGNAL));
-      }else{
+      } else {
         digitalWrite(LEFT_TURN_SIGNAL, LOW);
       }
 
       // Right turn signal
-      if (v * omega < 0 || emergency_signal_on){
-          digitalWrite(RIGHT_TURN_SIGNAL, !digitalRead(RIGHT_TURN_SIGNAL));
-      }else{
+      if (v * omega < 0 || emergency_signal_on) {
+        digitalWrite(RIGHT_TURN_SIGNAL, !digitalRead(RIGHT_TURN_SIGNAL));
+      } else {
         digitalWrite(RIGHT_TURN_SIGNAL, LOW);
       }
-    
+
       lastTurnSignal = currentMillis;
     }
-      
+
     v_prev = v;
     lastCycle = currentMillis ;
   }
 
-  if(currentMillis  - lastCycle >= idleCycle && !active){
+  if (currentMillis  - lastCycle >= idleCycle && !active) {
     analogWrite(HEAD_LIGHT, idleDuty);
     analogWrite(BRAKE_LIGHT, idleDuty);
     analogWrite(REVERSE_LIGHT, idleDuty);
@@ -296,9 +310,9 @@ void loop() {
 
     idleDuty += idleDir;
 
-    if(idleDuty == -10 || idleDuty == 200)
+    if (idleDuty == -10 || idleDuty == 200)
       idleDir *= -1;
-    
+
     lastCycle = currentMillis;
   }
   yield();
