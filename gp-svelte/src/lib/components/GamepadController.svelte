@@ -67,8 +67,8 @@
 
 <div class="gamepad-container relative">
   <div class="absolute top-2 left-2">
-    <span>velocity: {v.v}</span>
-    <span>circular: {v.w}</span>
+    <span>velocity: {v.v.toFixed(3)}</span>
+    <span>circular: {v.w.toFixed(3)}</span>
   </div>
   <div class="relative size-full">
     <div bind:this={left}></div>
