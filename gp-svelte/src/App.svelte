@@ -18,7 +18,9 @@
   <nav>
     <ButtonsPanel />
   </nav>
-  {JSON.stringify($customWsStore)}
+  <div class="absolute bottom-0 left-0 z-50">
+    {JSON.stringify($customWsStore)}
+  </div>
 
   {#if $controllerStore === "joypad"}
     <JoyController />
