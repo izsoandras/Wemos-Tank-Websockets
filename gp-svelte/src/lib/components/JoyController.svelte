@@ -14,7 +14,7 @@
   });
 
   $effect(() => {
-    angularVelocityStore.set(v.x);
+    angularVelocityStore.set(v.x * -1);
   });
 </script>
 
