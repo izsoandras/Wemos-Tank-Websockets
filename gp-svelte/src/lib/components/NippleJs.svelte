@@ -9,14 +9,17 @@
   let { vector = $bindable(), lockX, lockY, position }: Props = $props();
   let joystickDiv = $state<HTMLElement | null>(null);
 
+  let hasInstance = $state(false);
+
   onMount(() => {
     const joystick = nipplejs.create({
       zone: joystickDiv as HTMLElement,
-      mode: "static",
+      mode: "semi",
       color: "red",
       restJoystick: true,
-      size: 200,
-      position: { left: "50%", top: "50%" },
+      size: 100,
+      catchDistance: 30,
+      shape: "square",
       lockX,
       lockY,
     });
@@ -26,7 +29,16 @@
     joystick.on("end", () => {
       vector = { x: 0, y: 0 };
     });
+    joystick.on("start", () => {
+      if (!hasInstance) {
+        hasInstance = true;
+      }
+    });
   });
 </script>
 
-<div class="select-none" bind:this={joystickDiv}></div>
+{#if !hasInstance}
+  <div class="absolute">Tap and drag anywhere to start</div>
+{/if}
+
+<div class="select-none size-full" bind:this={joystickDiv}></div>
