@@ -18,11 +18,26 @@
   });
 </script>
 
-<p class="coordinates">
-  X: <span>{v.x}</span> Y:
-  <span>{v.y}</span>
-</p>
+<div class="relative">
+  <p class="coordinates">
+    X: <span>{v.x.toFixed(3)}</span> Y:
+    <span>{v.y.toFixed(3)}</span>
+  </p>
+</div>
 
 <div class="flex flex-row relative size-full">
-  <NippleJs bind:vector={outputCoord} />
+  <div class="size-full">
+    <NippleJs bind:vector={outputCoord} />
+  </div>
 </div>
+
+<style lang="postcss">
+  .coordinates {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 50;
+    background-color: rgba(255, 255, 255, 0.5);
+    padding: 0.5rem;
+  }
+</style>
