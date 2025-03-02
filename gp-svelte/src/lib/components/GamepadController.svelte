@@ -28,6 +28,8 @@
   let left = $state<HTMLElement | null>(null);
   let right = $state<HTMLElement | null>(null);
 
+  const size = 100;
+
   onMount(() => {
     const joystickL = nipplejs.create({
       zone: left as HTMLElement,
@@ -35,7 +37,7 @@
       position: { left: "20%", top: "50%" },
       color: "green",
       lockY: true,
-      size: 140,
+      size,
     });
     joystickL.on("move", (_, data) => {
       joyLeftValue = data.vector;
@@ -51,7 +53,7 @@
       position: { left: "80%", top: "50%" },
       color: "red",
       lockY: true,
-      size: 140,
+      size,
     });
     joystickR.on("move", (_, data) => {
       joyRightValue = data.vector;
