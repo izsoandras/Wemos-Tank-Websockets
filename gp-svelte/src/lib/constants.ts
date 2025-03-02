@@ -64,7 +64,7 @@ export const buttonMappings: GamepadButton[] = [
     icon: AudioLines,
   },
   {
-    label: "Emergency",
+    label: "Emergency", // aka Hazards
     gpio: 4,
     icon: TriangleAlert,
     favouredColor: colors.red,
