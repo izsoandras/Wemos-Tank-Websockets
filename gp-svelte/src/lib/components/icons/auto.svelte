@@ -1,0 +1,21 @@
+<svg
+  width="24"
+  height="24"
+  viewBox="0 0 100 100"
+  fill="none"
+  stroke="currentColor"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <text
+    x="50"
+    y="50"
+    font-family="Arial"
+    font-size="50"
+    fill="white"
+    text-anchor="middle"
+    alignment-baseline="central"
+  >
+    auto
+  </text>
+</svg>
